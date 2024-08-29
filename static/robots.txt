@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Sitemap: https://7712.by/sitemap.xml

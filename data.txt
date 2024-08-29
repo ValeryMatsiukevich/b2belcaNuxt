@@ -1,0 +1,74 @@
+import { ref } from 'vue'
+import slugify from 'slugify'
+
+interface Goods {
+  NomCode: string
+  NomNaim: string
+  Roditelcode: string
+  slug: string
+  IsGropup: string
+  Quantity: number
+  Akcionniy: string
+  Vigr7712: string
+  ZapretProdazhiNARD: string
+  Price: string
+}
+
+interface Prices {
+  NomCode: string
+  TipCenCode: string
+  Cena: string
+}
+
+const ostTipCenData = ref<Prices[] | null>(null)
+const nom1c8b2bData = ref<Goods[] | null>(null)
+console.log('Fetching data')
+
+async function fetchData() {
+  try {
+    const ostTipCen = await import('./server/assets/ost_tip_cen.json')
+    const nom1c8b2b = await import('./server/assets/nom1c8b2b.json')
+
+    ostTipCenData.value = ostTipCen.default;
+    nom1c8b2bData.value = nom1c8b2b.default;
+  } catch (error) {
+    console.error('Error loading data:', error)
+  }
+}
+
+async function processData() {
+  if (!ostTipCenData.value || !nom1c8b2bData.value) {
+    return
+  }
+
+  const prices = ostTipCenData.value.filter((el: { TipCenCode: string }) => el.TipCenCode === '000000009')
+  const goods = nom1c8b2bData.value.filter((el: { IsGropup: string; Vigr7712: string }) => el.IsGropup === 'Нет' && el.Vigr7712 === 'Да')
+  const folders = nom1c8b2bData.value.filter((el: { IsGropup: string }) => el.IsGropup === 'Да')
+
+  if (prices.length) {
+    goods.forEach((element) => {
+      const price = prices.find((el: { NomCode: string }) => el.NomCode === element.NomCode)
+      if (price) {
+        element.Price = price.Cena
+      }
+    })
+  }
+
+  if (folders.length) {
+    folders.sort((a, b) => {
+      if (a.NomNaim < b.NomNaim) {
+        return -1
+      }
+      if (a.NomNaim > b.NomNaim) {
+        return 1
+      }
+      return 0
+    })
+
+    folders.forEach((element) => {
+      element.slug = slugify(element.NomNaim + element.NomCode)
+    })
+  }
+}
+
+export { ostTipCenData, nom1c8b2bData, fetchData, processData }
