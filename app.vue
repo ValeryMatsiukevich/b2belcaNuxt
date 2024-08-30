@@ -10,19 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-export interface Goods {
-  NomCode: string;
-  NomNaim: string;
-  RoditelCode: string;
-  slug: string;
-  IsGropup: string;
-  Quantity: number;
-  Akcionniy: string;
-  Vigr7712: string;
-  ZapretProdazhiNARD: string;
-  Price: string;
-  inCart: number;
-}
+
 const { data: contragents } = await useAsyncData("contragents", () =>
   $fetch("/api/contragents")
 );
@@ -30,9 +18,11 @@ const { data: goods } = await useAsyncData("goods", () => $fetch("/api/goods"));
 const { data: folders } = await useAsyncData("folders", () =>
   $fetch("/api/folders")
 );
+const selectedContragent = ref("");
 provide("contragents",contragents);
 provide("goods",goods);
 provide("folders",folders);
+provide("selectedContragent",selectedContragent);
 useHead({
   title: "b2.belca.by",
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],

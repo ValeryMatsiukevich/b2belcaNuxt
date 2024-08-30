@@ -1,19 +1,7 @@
 import { defineEventHandler } from "h3";
 import fs from "fs/promises";
 
-export interface Goods {
-  NomCode: string;
-  NomNaim: string;
-  RoditelCode: string;
-  slug: string;
-  IsGropup: string;
-  Quantity: number;
-  Akcionniy: string;
-  Vigr7712: string;
-  ZapretProdazhiNARD: string;
-  Price: string;
-  inCart: number;
-}
+
 export interface Ostatki {
   NomCode: string;
   Sklad: string;
@@ -31,7 +19,7 @@ export default defineEventHandler(async (event) => {
   prices = prices.filter((el: { TipCenCode: string }) => el.TipCenCode === "000000006");
   goods = goods.filter(
     (el: { IsGropup: string; Vigr7712: string }) =>
-      el.IsGropup === "Нет" && el.Vigr7712 === "Да"
+      el.IsGropup === "Нет" 
   );
   
   const filteredOstatki = ostatki.filter(

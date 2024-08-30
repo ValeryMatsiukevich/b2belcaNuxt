@@ -1,18 +1,5 @@
 <script setup lang="ts">
-//import type { Goods } from "../server/api/goods";
-export interface Goods {
-  NomCode: string;
-  NomNaim: string;
-  RoditelCode: string;
-  slug: string;
-  IsGropup: string;
-  Quantity: number;
-  Akcionniy: string;
-  Vigr7712: string;
-  ZapretProdazhiNARD: string;
-  Price: string;
-  inCart: number;
-}
+
 
 const props = defineProps({
   folders: {
@@ -34,13 +21,13 @@ const filteredFolders = computed(() => {
   );
 });
 
-const foldersToTree = (folders: Goods[], parentCode = "00000000001") => {
+const foldersToTree = (folders: Goods[], parentCode = "00000000001"): Array<{ id: string; title: string; slug: string; children: any[] }> => {
   const children = folders.filter(
     (folder) => folder.RoditelCode === parentCode
   );
 
   if (children.length === 0) {
-    return "";
+    return [];
   }
 
   return children.map((folder) => ({
@@ -110,7 +97,7 @@ export default {
         select-strategy="single-leaf"
       >
         <template v-slot:title="{ item }" >
-         <p class="text-xs"> {{ item.title }} </p>
+         <p class="text-xs"> {{ item.title as string }} </p>
         </template>
       </v-treeview>
       <!-- <v-list>

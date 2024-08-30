@@ -29,7 +29,7 @@
                 >
                   <NuxtLink :to="routeUtils(item.raw.NomCode)">
                     <v-img
-                      height="30"
+                      height="300"
                       gradient="to top right, rgba(100,115,201,.1), rgba(25,32,72,.05)"
                       :src="goodPicture(item.raw.NomCode)"
                       ><template v-slot:placeholder>
@@ -192,7 +192,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Goods } from "../server/api/goods";
+
 import { inject, computed, ref } from "vue";
 import { useRoute } from "vue-router";
 const breadcrumbs = reactive<
@@ -236,27 +236,31 @@ const StopLoading = () => {
 
 const filteredGoods = computed(() => {
   var hr = `/catalog/`;
-  var id = route.params.catalog[1];
-  if (id && tree && tree.value.length === 0) {
-    breadcrumbs.splice(0, breadcrumbs.length);
-    breadcrumbs.push({
-      title: "Каталог",
-      disabled: false,
-      href: "/catalog",
-    });
-    hr += `${id}/`;
-    breadcrumbs.push({
-      title: id,
-      disabled: true,
-      href: hr,
-    });
-    return props.goods.filter((good) => String(good.NomCode) === String(id));
+  if (route.params.catalog) {
+    var id = route.params.catalog[1];
+
+    if (id && tree && tree.value.length === 0) {
+      breadcrumbs.splice(0, breadcrumbs.length);
+      breadcrumbs.push({
+        title: "Каталог",
+        disabled: false,
+        href: "/catalog",
+      });
+      hr += `${id}/`;
+      breadcrumbs.push({
+        title: id,
+        disabled: true,
+        href: hr,
+      });
+      return props.goods.filter((good:Goods) => String(good.NomCode) === String(id));
+    }
   }
-  if (tree && tree.value.length === 0) return props.goods.map((good) => good);
+  if (tree && tree.value.length === 0) return props.goods.map((good:Goods) => good);
   if (tree && tree.value.length > 0) {
     //console.log(tree.value[0])
-    return props.goods.filter((good) => good.RoditelCode === tree.value[0]);
+    return props.goods.filter((good:Goods) => good.RoditelCode === tree.value[0]);
   }
+  return props.goods;
 });
 
 // const filteredGoods = computed(() => {
@@ -521,8 +525,8 @@ const getAllDescendantFolders = (folder: any): Set<string> => {
 const getAncestorFolders = (folderCode: string) => {
   const ancestorFolders: any[] = [];
 
-  const findAncestorFolders = (folderCode: any) => {
-    const folder = props.folders.find(
+  const findAncestorFolders = (folderCode: string) => {
+    const folder = <Goods>props.folders.find(
       (folder: Goods) => folder.NomCode === folderCode
     );
 
@@ -543,7 +547,7 @@ const goodPicture = (article: String) => {
 };
 
 const routeUtils = (NomCode: string) => {
-  const item = props.goods.find((good) => good.NomCode === NomCode);
+  const item = props.goods.find((good:Goods) => good.NomCode === NomCode);
   //console.log(item?.RoditelCode);
   if (!item) {
     // console.log("!item");

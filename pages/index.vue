@@ -1,6 +1,6 @@
 <template>
   <div id="start">
-    <AppHeader :goods="goods as Goods[]" :folders="folders as Goods[]" />
+    <AppHeader :goods="goods as Goods[]" :folders="folders as Goods[]" :contragents="contragents as Contragents[]" />
 
     <v-card rounded="0" text-center color="cyan">
       <v-card-title  class="text-white text-3xl text-center">БЕЛЫЙ КАРТРИДЖ</v-card-title>
@@ -26,26 +26,15 @@
 </template>
 <script lang="ts" setup>
 //import { gsap } from "gsap";
-export interface Goods {
-  NomCode: string;
-  NomNaim: string;
-  RoditelCode: string;
-  slug: string;
-  IsGropup: string;
-  Quantity: number;
-  Akcionniy: string;
-  Vigr7712: string;
-  ZapretProdazhiNARD: string;
-  Price: string;
-  inCart: number;
-}
+
 const show = ref(false);
 const show1 = ref(false);
 const show2 = ref(false);
 const show3 = ref(false);
-const contragents = inject<Goods[]>("contragents");
+const contragents = inject<Contragents[]>("contragents");
 const goods = inject<Goods[]>("goods");
 const folders = inject<Goods[]>("folders");
+const selectedContragent = inject<Contragents>("selectedContragent");
 
 const getRandomPicture = (min:number, max:number) => {
   min = Math.ceil(min);

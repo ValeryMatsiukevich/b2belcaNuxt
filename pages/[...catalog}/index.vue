@@ -1,6 +1,6 @@
 <template>
   <div id="catalog">
-    <AppHeader :goods="goods as Goods[]" :folders="folders as Goods[]" />
+    <AppHeader :goods="goods as Goods[]" :folders="folders as Goods[]" :contragents="contragents as Contragents[]" />
 
     <!-- Catalog {{ route.params }} -->
 
@@ -12,30 +12,20 @@
 </template>
 
 <script lang="ts" setup>
-export interface Goods {
-  NomCode: string;
-  NomNaim: string;
-  RoditelCode: string;
-  slug: string;
-  IsGropup: string;
-  Quantity: number;
-  Akcionniy: string;
-  Vigr7712: string;
-  ZapretProdazhiNARD: string;
-  Price: string;
-  inCart: number;
-}
+
 console.log("catalog loaded");
+
 const tree = ref([]);
 const route = useRoute();
 const goods = inject<Goods[]>("goods");
 const folders = inject<Goods[]>("folders");
+  const contragents = inject<Contragents[]>("contragents");
 provide("tree", tree);
 // useHead(() => ({
 //   link: [
 //     {
 //       rel: 'canonical',
-//       href: 'https://7712.by' + route.path,
+//       href: 'https://b2.belca.by' + route.path,
 //     },
 //   ],
 // }))

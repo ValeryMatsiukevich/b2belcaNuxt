@@ -93,14 +93,8 @@
         min-width="350px"
         density="compact"
         class="mt-5"
-        :items="[
-          'California',
-          'Colorado',
-          'Florida',
-          'Georgia',
-          'Texas',
-          'Wyoming',
-        ]"
+        :items="props.contragents.map(contragent => contragent.Kontragent)"
+        v-model="selectedContragent"
       ></v-combobox>
 
       <v-divider></v-divider>
@@ -205,19 +199,7 @@
 </template>
 <script lang="ts" setup>
 //import type { Goods } from '../server/api/goods';
-export interface Goods {
-  NomCode: string;
-  NomNaim: string;
-  RoditelCode: string;
-  slug: string;
-  IsGropup: string;
-  Quantity: number;
-  Akcionniy: string;
-  Vigr7712: string;
-  ZapretProdazhiNARD: string;
-  Price: string;
-  inCart: number;
-}
+
 const props = defineProps({
   folders: {
     type: Array as PropType<Goods[]>,
@@ -227,10 +209,18 @@ const props = defineProps({
     type: Array as PropType<Goods[]>,
     required: true,
   },
+  contragents: {
+    type: Array as PropType<Contragents[]>,
+    required: true,
+  },
+  
 });
+
+//const selectedContragent = reactive({ Kontragent: "" });
+
 const telmenu = ref(false);
 const telmenumob = ref(false);
-
+const selectedContragent = inject<string>("selectedContragent");
 function startViberChat() {
   // Replace 'your_viber_username' with the actual Viber username
   const viberUsername = "your_viber_username";
