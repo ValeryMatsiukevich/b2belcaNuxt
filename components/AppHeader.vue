@@ -83,25 +83,30 @@
 
       <NuxtLink to="/" class="ml-3 hidden-sm-and-down">
         <v-avatar border="0" size="x-large" rounded="0">
-          <v-img alt="logo" max-width="164" src="/public/logo.png" />
+          <v-img
+            alt="logo"
+            max-height="120"
+            max-width="120"
+            src="/public/logo.png"
+          />
         </v-avatar>
       </NuxtLink>
       <v-divider></v-divider>
 
       <v-combobox
         label="Контрагент"
+        clearable
         min-width="350px"
         density="compact"
         class="mt-5"
-        :items="props.contragents.map(contragent => contragent.Kontragent)"
+        :items="props.contragents.map((contragent) => contragent.Kontragent)"
         v-model="selectedContragent"
       ></v-combobox>
 
       <v-divider></v-divider>
 
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
-        <v-btn class="text-none" stacked v-tooltip="'Создать резерв'"
-          >
+        <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
           <v-badge color="primary" content="12">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
           </v-badge>
@@ -109,33 +114,24 @@
       </NuxtLink>
 
       <NuxtLink to="/cart" class="ml-3 hidden-sm-and-down">
-        <v-btn class="text-none" stacked v-tooltip="'Корзина'"
-          >
-         
-            <v-badge color="primary" content="12">
-              <v-icon size="large" icon="mdi mdi-cart"></v-icon>
-            </v-badge>
-          
+        <v-btn class="text-none" stacked v-tooltip="'Корзина'">
+          <v-badge color="primary" content="12">
+            <v-icon size="large" icon="mdi mdi-cart"></v-icon>
+          </v-badge>
         </v-btn>
       </NuxtLink>
       <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down">
-        <v-btn class="text-none" stacked v-tooltip="'Список заказов'"
-          >
-         
-            <v-badge color="primary" content="12">
-              <v-icon size="large" icon="mdi mdi-invoice-list"></v-icon>
-            </v-badge>
-        
+        <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
+          <v-badge color="primary" content="12">
+            <v-icon size="large" icon="mdi mdi-invoice-list"></v-icon>
+          </v-badge>
         </v-btn>
       </NuxtLink>
       <NuxtLink to="/favorites" class="ml-3 hidden-sm-and-down">
-        <v-btn class="text-none" stacked v-tooltip="'Избранное'"
-          >
+        <v-btn class="text-none" stacked v-tooltip="'Избранное'">
           <v-badge color="primary" content="12">
             <v-icon size="large" icon="mdi mdi-heart"></v-icon>
           </v-badge>
-          
-         
         </v-btn>
       </NuxtLink>
 
@@ -190,37 +186,59 @@
         </v-menu>
       </div>
       <v-divider></v-divider>
-      <v-btn elevation="8" v-bind="props" v-tooltip="'Выйти'"
-        ><v-icon size="x-large" icon="mdi mdi-logout"></v-icon
-      ></v-btn>
+      <v-btn @click="logout()" elevation="8" v-bind="props" v-tooltip="'Выйти'">
+        <v-icon
+          v-if="auth"
+          :class="{ 'text-red': boss && mng, 'text-orange': mng && !boss }"
+          size="x-large"
+          icon="mdi mdi-logout"
+        ></v-icon>
+      </v-btn>
       <AppCart />
     </v-app-bar>
   </div>
 </template>
 <script lang="ts" setup>
 //import type { Goods } from '../server/api/goods';
-
+const auth = inject<Ref<boolean>>("auth", ref(false));
+const mng = inject<Ref<boolean>>("mng", ref(false));
+const boss = inject<Ref<boolean>>("boss", ref(false));
 const props = defineProps({
-  folders: {
-    type: Array as PropType<Goods[]>,
-    required: true,
-  },
-  goods: {
-    type: Array as PropType<Goods[]>,
-    required: true,
-  },
-  contragents: {
+   contragents: {
     type: Array as PropType<Contragents[]>,
     required: true,
   },
-  
 });
 
-//const selectedContragent = reactive({ Kontragent: "" });
 
+const route = useRoute();
 const telmenu = ref(false);
 const telmenumob = ref(false);
-const selectedContragent = inject<string>("selectedContragent");
+const selectedContragent = inject<Ref<string>>("selectedContragent",ref(""));
+const storedSelectedContragent = useCookie("storedSelectedContragent");
+const loginCookie = useCookie("loginCookie");
+const passwordCookie = useCookie("passwordCookie");
+const logout = () => {
+  // Remove all cookies
+  loginCookie.value = null;
+  passwordCookie.value = null;
+
+  // Reset the auth state
+  auth.value = false;
+  mng.value = false;
+  boss.value = false;
+  // Reset the selected contragent cookie
+  // storedSelectedContragent.value = "";
+  if (!auth.value && route.path !== "/login") navigateTo("/login");
+};
+
+if (storedSelectedContragent && storedSelectedContragent.value !== undefined)
+  selectedContragent.value = storedSelectedContragent.value as string;
+
+watch(selectedContragent, (newValue: string) => {
+  // Store the selected contragent in the cookie
+  storedSelectedContragent.value = newValue;
+});
 function startViberChat() {
   // Replace 'your_viber_username' with the actual Viber username
   const viberUsername = "your_viber_username";

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AppHeader :goods="goods" :folders="folders" />
+    <AppHeader :contragents="contragents as Contragents[]" />
     <v-row>
       <v-col cols="12" md="6">
         <v-card
@@ -55,12 +55,7 @@
 </template>
 
 <script lang="ts" setup>
-
-
-const { data: goods } = await useAsyncData("goods", () => $fetch("/api/goods"));
-const { data: folders } = await useAsyncData("folders", () =>
-  $fetch("/api/folders")
-);
+const contragents = inject<Contragents[]>("contragents");
 </script>
 
 <style></style>

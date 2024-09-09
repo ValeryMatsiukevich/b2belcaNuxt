@@ -11,12 +11,12 @@ export default defineEventHandler(async (event) => {
   let folders = JSON.parse(data)
   folders = folders.filter((el: { IsGropup: string }) => el.IsGropup === 'Да')
   // folders = folders.filter((el: Goods) => el.NomCode !== '99990001' && el.NomCode !== 'D2616486');
-  folders.forEach((element:Window["Goods"]) => {
+  folders.forEach((element:Goods) => {
     element.slug = slugify(element.NomNaim + element.NomCode)
     //console.log(element.NomNaim + ' --- '+ element.NomCode)
   })
   // console.log(folders.length)
 
-  folders.sort((a:Window["Goods"], b:Window["Goods"]) => a.NomNaim.localeCompare(b.NomNaim));
+  folders.sort((a:Goods, b:Goods) => a.NomNaim.localeCompare(b.NomNaim));
   return folders;
 });

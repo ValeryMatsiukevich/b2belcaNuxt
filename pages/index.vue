@@ -1,6 +1,6 @@
 <template>
   <div id="start">
-    <AppHeader :goods="goods as Goods[]" :folders="folders as Goods[]" :contragents="contragents as Contragents[]" />
+    <AppHeader :contragents="contragents as Contragents[]" />
 
     <v-card rounded="0" text-center color="cyan">
       <v-card-title  class="text-white text-3xl text-center">БЕЛЫЙ КАРТРИДЖ</v-card-title>
@@ -32,8 +32,8 @@ const show1 = ref(false);
 const show2 = ref(false);
 const show3 = ref(false);
 const contragents = inject<Contragents[]>("contragents");
-const goods = inject<Goods[]>("goods");
-const folders = inject<Goods[]>("folders");
+//const goods = inject<Goods[]>("goods");
+//const folders = inject<Goods[]>("folders");
 const selectedContragent = inject<Contragents>("selectedContragent");
 
 const getRandomPicture = (min:number, max:number) => {
@@ -53,8 +53,8 @@ const img1 = getRandomPicture(0, 8);
 const img2 = getRandomPicture(9, 18);
 const img3 = getRandomPicture(19, 26);
 console.log("page index");
-const accepted = useCookie("accepted");
-accepted.value = <string>accepted.value || "no";
+// const accepted = useCookie("accepted");
+// accepted.value = <string>accepted.value || "no";
 </script>
 
 <style scoped>

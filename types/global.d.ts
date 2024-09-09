@@ -38,6 +38,18 @@ declare global {
     Tip: number;
     UNP: string;
   }
+
+  interface Tree {
+    id: string;
+    title: string;
+    slug: string;
+    children?: Tree[];
+  }
+
+  interface LoginResponse {
+    Kontragent: [];
+    Ответ: string;
+  }
 }
 
 // Ensure that this file is included in your tsconfig.json file under "include"
