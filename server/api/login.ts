@@ -4,7 +4,7 @@ export default defineEventHandler(async (event) => {
   const credentials = await readBody(event);
 
   try {
-    console.log(credentials.Login, credentials.Password);
+    //console.log(credentials.Login, credentials.Password);
 
     let config = {
       method: "get",
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     };
 
     const response = await axios.request(config);
-  //  console.log(JSON.stringify(response.data));
+    console.log(JSON.stringify(response.data));
     return response.data;
   } catch (error) {
     console.log(error);

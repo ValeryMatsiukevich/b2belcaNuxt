@@ -1,24 +1,19 @@
 <template>
-     <NuxtLink to="/cart" class="mx">
-      <v-btn label="Корзина"  stacked>
-      <v-badge v-if="getTotalItems()>0" color="error" :content="getTotalItems()">
-        <v-icon color="cyan">mdi-cart</v-icon>
+  <NuxtLink to="/cart" class="ml-3 hidden-sm-and-down">
+    <v-btn label="Корзина" class="text-none" stacked v-tooltip="'Корзина'">
+      <v-badge color="primary" :content="getTotalItems()">
+        <v-icon size="large" color="white">mdi-cart</v-icon>
       </v-badge>
-      
     </v-btn>
-    
-
-    </NuxtLink>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
-
-const cart = useCookie<Array<any>>('cart')
+const cart = useCookie<Array<any>>("cart");
 if (!cart.value) {
-  cart.value = []
+  cart.value = [];
 }
 const getTotalItems = () => {
-  return cart.value.length
-}
-
+  return cart.value.length;
+};
 </script>

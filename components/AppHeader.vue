@@ -94,6 +94,7 @@
       <v-divider></v-divider>
 
       <v-combobox
+        v-if="mng"
         label="Контрагент"
         clearable
         min-width="350px"
@@ -107,19 +108,14 @@
 
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
         <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
-          <v-badge color="primary" content="12">
+          <v-badge color="primary" :content="goods.length">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
           </v-badge>
         </v-btn>
       </NuxtLink>
 
-      <NuxtLink to="/cart" class="ml-3 hidden-sm-and-down">
-        <v-btn class="text-none" stacked v-tooltip="'Корзина'">
-          <v-badge color="primary" content="12">
-            <v-icon size="large" icon="mdi mdi-cart"></v-icon>
-          </v-badge>
-        </v-btn>
-      </NuxtLink>
+      <AppCart />
+
       <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down">
         <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
           <v-badge color="primary" content="12">
@@ -194,27 +190,30 @@
           icon="mdi mdi-logout"
         ></v-icon>
       </v-btn>
-      <AppCart />
     </v-app-bar>
   </div>
 </template>
 <script lang="ts" setup>
-//import type { Goods } from '../server/api/goods';
+
 const auth = inject<Ref<boolean>>("auth", ref(false));
 const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
+
 const props = defineProps({
-   contragents: {
+  contragents: {
     type: Array as PropType<Contragents[]>,
+    required: true,
+  },
+  goods: {
+    type: Array as PropType<Goods[]>,
     required: true,
   },
 });
 
-
 const route = useRoute();
 const telmenu = ref(false);
 const telmenumob = ref(false);
-const selectedContragent = inject<Ref<string>>("selectedContragent",ref(""));
+const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
@@ -256,4 +255,5 @@ function startPhoneCall() {
   const phoneNumber = "+375293607712";
   window.open(`tel:${phoneNumber}`, "_blank");
 }
+
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div id="start">
-    <AppHeader :contragents="contragents as Contragents[]" />
+    <AppHeader :contragents="contragents as Contragents[]"  />
 
     <v-card rounded="0" text-center color="cyan">
       <v-card-title  class="text-white text-3xl text-center">БЕЛЫЙ КАРТРИДЖ</v-card-title>
@@ -32,10 +32,13 @@ const show1 = ref(false);
 const show2 = ref(false);
 const show3 = ref(false);
 const contragents = inject<Contragents[]>("contragents");
-//const goods = inject<Goods[]>("goods");
+// const goods = inject<Goods[]>("goods");
 //const folders = inject<Goods[]>("folders");
 const selectedContragent = inject<Contragents>("selectedContragent");
-
+// const catalogSize = ref(0);
+// watch(goods, (newGoods) => {
+//   catalogSize.value = newGoods && newGoods.values ? newGoods.values.length : 0;
+// });
 const getRandomPicture = (min:number, max:number) => {
   min = Math.ceil(min);
   max = Math.floor(max);

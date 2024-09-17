@@ -114,18 +114,13 @@ const boss = inject<Ref<boolean>>("boss", ref(false));
 const login = ref("");
 const password = ref("");
 
-interface LoginResponse {
-  Ответ: string;
-  Kontragent: { UNP: string }[];
-}
-
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 
 const checkLogin = async () => {
   console.log(login.value);
   console.log(password.value);
-  const { data: loginData } = await useFetch("/api/login", {
+  const {data:loginData} = await useFetch("/api/login", {
     method: "POST",
     body: JSON.stringify({
       Login: login.value,
@@ -135,31 +130,31 @@ const checkLogin = async () => {
       "Content-Type": "application/json",
     },
   });
-
+  console.log(loginData.value);
   const route = useRoute();
-  if (loginData.value !== "") {
-    console.log(loginData.value);
-    if (loginData.value.Ответ === "Successful !") {
-      auth.value = true;
-    }
-    if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
-      mng.value = true;
-    }
-    if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
-      boss.value = true;
-    }
+   if (loginData.value !== "") {
+     console.log(loginData.value);
+     if (loginData.value.Ответ === "Successful !") {
+       auth.value = true;
+     }
+     if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+       mng.value = true;
+     }
+     if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+       boss.value = true;
+     }
 
-    if (String(rememberMe.value) === "true") {
-      loginCookie.value = login.value;
-      passwordCookie.value = password.value;
-    }
+     if (String(rememberMe.value) === "true") {
+       loginCookie.value = login.value;
+       passwordCookie.value = password.value;
+     }
 
-    if (auth.value && route.path !== "/") {
-      navigateTo("/");
-    }
-  } else if (!auth.value) {
-    alert("Неверный логин или пароль!");
-  }
+     if (auth.value && route.path !== "/") {
+       navigateTo("/");
+     }
+   } else if (!auth.value) {
+     alert("Неверный логин или пароль!");
+   }
 };
 </script>
 

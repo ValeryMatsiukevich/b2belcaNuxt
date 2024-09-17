@@ -13,24 +13,36 @@
 const auth = ref(false);
 const mng = ref(false);
 const boss = ref(false);
-const { data: contragents } = await useAsyncData("contragents", () =>
-  $fetch("/api/contragents")
-);
+
 const route = useRoute();
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
+let priceType = ref("");
 
-console.log("Login:", loginCookie);
-console.log("Password:", passwordCookie);
-const { data: goods } = await useAsyncData("goods", () => $fetch("/api/goods"));
+//console.log("Login:", loginCookie);
+//console.log("Password:", passwordCookie);
+const goods = ref([]);
+const selectedContragent = ref("");
+const selectedContragentData = ref<Contragents>();
+const loginData = ref<LoginResponse>();
+const { data: contragents } = await useAsyncData("contragents", () =>
+  $fetch("/api/contragents")
+);
 
 const { data: folders } = await useAsyncData("folders", () =>
   $fetch("/api/folders")
 );
-const selectedContragent = ref("");
 
-if (loginCookie.value !== undefined && passwordCookie.value !== undefined) {
-  const { data: login } = await useAsyncData("login", () =>
+// const { data: prices } = await useAsyncData("prices", () =>
+//   $fetch("/api/prices")
+// );
+
+const { data: ostatki } = await useAsyncData("ostatki", () =>
+  $fetch("/api/ostatki")
+);
+
+if (loginCookie && passwordCookie) {
+  const { data: loginDataraw } = await useAsyncData("login", () =>
     $fetch("/api/login", {
       method: "POST",
       body: JSON.stringify({
@@ -42,32 +54,124 @@ if (loginCookie.value !== undefined && passwordCookie.value !== undefined) {
       },
     })
   );
-  console.log(login);
-  if (login !== undefined) {
-    if (login.value.Ответ === "Successful !") {
-      auth.value = true;
-      if (login.value.Kontragent[0].UNP.trim() === "0000000055") {
-        mng.value = true;
-      }
-      if (login.value.Kontragent[0].UNP.trim() === "0000000055") {
-        boss.value = true;
-      } else {
-        boss.value = false;
-        mng.value = false;
+  loginData.value = loginDataraw.value;
+  if (loginData.value !== undefined) {
+    //console.log(loginData.value.Kontragent[0]);
+    if (loginData !== undefined) {
+      if (loginData.value.Ответ === "Successful !") {
+        auth.value = true;
+        if (loginData.value.Kontragent[0].Manager !== false) {
+          mng.value = true;
+        }
+        if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+          boss.value = true;
+        } else {
+          boss.value = false;
+          mng.value = false;
+        }
       }
     }
   }
 }
+
+//   t fetchPrices = async (priceType: string) => {
+//   const { data: pricesData } = await useFetch<Prices[]>(
+//     `/api/prices?type=${priceType}`
+//   );
+//   prices.value = pricesData;
+// };
+
+watch(selectedContragent, async (newValue, oldValue) => {
+  let newContragent = contragents.value.find(
+    (cont: Contragents) => cont.Kontragent === newValue
+  );
+  if (newContragent) {
+    //console.log("selectedContragent changed:", "->", newContragent);
+    selectedContragentData.value = newContragent;
+    if (
+      selectedContragentData.value &&
+      (selectedContragentData.value.Tip === 4 ||
+        selectedContragentData.value.Tip === 6 ||
+        selectedContragentData.value.Gorod === "rf")
+    )
+      selectedContragentData.value.priceCurrency = "RUB";
+    else if (selectedContragentData.value)
+      selectedContragentData.value.priceCurrency = "BYN";
+
+    //     let priceType = "";
+    if (
+      selectedContragentData.value &&
+      selectedContragentData.value.Tip === 1
+    ) {
+      priceType.value = "000000107";
+    } else if (
+      selectedContragentData.value &&
+      selectedContragentData.value.Tip === 2
+    ) {
+      priceType.value = "000000009";
+    } else if (
+      selectedContragentData.value &&
+      selectedContragentData.value.Tip === 3
+    ) {
+      priceType.value = "000000105";
+    } else if (
+      selectedContragentData.value &&
+      selectedContragentData.value.Tip === 4 &&
+      selectedContragentData.value.Priznak === 2
+    ) {
+      priceType.value = "000000111";
+    } else if (
+      selectedContragentData.value &&
+      selectedContragentData.value.Tip === 5
+    ) {
+      priceType.value = "000000006";
+    }
+
+    if (
+      selectedContragentData.value &&
+      (selectedContragentData.value.Tip === 6 ||
+        (selectedContragentData.value.Tip === 4 &&
+          selectedContragentData.value.Priznak === 3))
+    ) {
+      priceType.value = "000000114";
+    }
+
+    
+   await getGoods();
+   
+  }
+});
+
+
+const getGoods= async() =>{
+  const  goodsData  = await $fetch("/api/goods", {
+      method: "POST",
+      body: JSON.stringify({ type: priceType.value }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      onRequest({ request, options }) {
+        console.log("REQUEST ", priceType.value);
+        console.log("REQUEST BODY ", JSON.stringify({ type: priceType.value }));
+      },
+      query: { type: priceType.value },
+    });
+    goods.value = goodsData;
+  };
+
 const tree = ref([]);
 if (!auth.value && route.path !== "/login") navigateTo("/login");
 provide("contragents", contragents);
 provide("goods", goods);
+provide("ostatki", ostatki);
 provide("tree", tree);
 provide("folders", folders);
 provide("auth", auth);
 provide("mng", mng);
 provide("boss", boss);
 provide("selectedContragent", selectedContragent);
+provide("selectedContragentData", selectedContragentData);
+provide("loginData", loginData);
 useHead({
   title: "b2.belca.by",
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],

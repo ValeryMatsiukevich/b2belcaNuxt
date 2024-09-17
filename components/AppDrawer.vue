@@ -45,9 +45,12 @@ const props = defineProps({
 const tree = inject<Ref<Tree[]>>("tree");
 const open = ref([]);
 const clearSelection = () => {
-  tree.value = [];
+  if(tree) tree.value = [];
   open.value = [];
 };
+onBeforeUnmount(() => {
+  clearSelection();
+});
 
 const foldersToTree = (
   folders: Goods[],

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AppHeader :goods="goods" :folders="folders" />
+    <AppHeader :contragents="contragents as Contragents[]" />
     <v-stepper
       :items="['Шаг 1', 'Шаг 2', 'Шаг 3']"
       next-text="Далее"
@@ -51,7 +51,7 @@
                     </v-chip>
 
                     <v-chip
-                      :text="item.inCart"
+                      :text="String(item.inCart)"
                       class="text-uppercase"
                       size="small"
                       label
@@ -63,6 +63,11 @@
                       size="small"
                       label
                     >
+                    </v-chip>
+
+                    Цена:
+                    <v-chip class="text-uppercase" size="small" label>
+                      {{ item.Price }} BYN
                     </v-chip>
                     Сумма:
                     <v-chip class="text-uppercase" size="small" label>
@@ -185,22 +190,16 @@ declare module "#app" {
 }
 
 const { $mail } = useNuxtApp();
-const { data: goods } = await useAsyncData("goods", () => $fetch("/api/goods"));
-const { data: folders } = await useAsyncData("folders", () =>
-  $fetch("/api/folders")
-);
-const search = ref("");
+const goods = inject<Goods[]>("goods");
+
+const contragents = inject<Contragents[]>("contragents");
+
 //Cart
 const cart = useCookie<Array<any>>("cart");
 if (!cart.value) {
   cart.value = [];
 }
 
-const confirmation = ref(true);
-const addToCart = (item: any) => {
-  item.inCart = 1;
-  cart.value.push(item);
-};
 
 const sum = (item: any) => {
   return item.inCart * Number(item.Price.replace(",", "."));
@@ -219,13 +218,21 @@ const decrementQuantity = (item: any) => {
 
 const removeFromCart = (item: any) => {
   const index = cart.value.indexOf(item);
+
   if (index !== -1) {
     cart.value.splice(index, 1);
   }
+  // Find the corresponding good in the goods array and set inCart to 0
+  if (goods) {
+    const good = goods.value.find(
+      (good: Goods) => good.NomCode === item.NomCode
+    );
+    if (good) {
+      good.inCart = 0;
+    }
+  }
 };
-const getTotalItems = () => {
-  return cart.value.length;
-};
+
 const getTotalPrice = () => {
   return cart.value.reduce((total, item) => total + sum(item), 0).toFixed(2);
 };
@@ -347,17 +354,17 @@ const submit = handleSubmit((values) => {
     text += " Наим: " + value.NomNaim;
     text += " Кол-во: " + value.inCart;
     text += " Цена: " + value.Price.replace(",", ".");
-    text += " Сумма: " + value.Price.replace(",", ".") * value.inCart + '\r\n';
+    text += " Сумма: " + value.Price.replace(",", ".") * value.inCart + "\r\n";
   });
-     $mail.send({
-     from: 'order@belca.by',
-     subject: 'Заказ с cайта 7712',
-     text: text,
-   })
+  $mail.send({
+    from: "order@belca.by",
+    subject: "Заказ с cайта 7712",
+    text: text,
+  });
 
   //alert(text);
   alert("Заказ успешно отправлен в обработку");
-  cart.value=[]
+  cart.value = [];
 });
 </script>
 

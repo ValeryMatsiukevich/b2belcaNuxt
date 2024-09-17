@@ -37,6 +37,8 @@ declare global {
     Priznak: number;
     Tip: number;
     UNP: string;
+    priceCurrency: string;
+    Gorod: string;
   }
 
   interface Tree {
@@ -46,8 +48,15 @@ declare global {
     children?: Tree[];
   }
 
+  interface Prices {
+    Cena: string;
+    NomCode: string;
+    TipCenCode: string;
+    ValutaCode: string;
+  }
+
   interface LoginResponse {
-    Kontragent: [];
+    Kontragent: any[];
     Ответ: string;
   }
 }

@@ -43,7 +43,7 @@
             
             <v-col class="text-end mt-4" cols="12">
                 <v-icon color="cyan" icon="mdi-copyright"></v-icon> {{ new Date().getFullYear() }} — 
-                ООО <strong>"Копикс Принт"</strong>
+                ООО <strong>"Белый Картридж"</strong>
             </v-col>
         </v-row>
 

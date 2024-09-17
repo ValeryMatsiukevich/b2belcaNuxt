@@ -6,7 +6,7 @@
 
     <v-card>
       <v-data-iterator
-        :items="filteredGoods"
+        :items="filteredGoods()"
         :items-per-page="ipp ? Number(ipp) : 8"
         :return-object="false"
         :loading="loading"
@@ -17,7 +17,13 @@
         <template v-slot:default="{ items }">
           <v-container class="pa-2">
             <v-row dense>
-              <v-col v-for="(item, i) in items" :key="i" cols="auto" md="6" xs="12">
+              <v-col
+                v-for="(item, i) in items"
+                :key="i"
+                cols="auto"
+                md="6"
+                xs="12"
+              >
                 <v-card
                   :color="isInCart(item.raw.NomCode) ? 'blue' : 'default'"
                   height="25vh"
@@ -31,18 +37,16 @@
                     </v-avatar>
                   </template>
                   <v-card-text class="text-s">
-                    
                     {{
                       item.raw.NomNaim.charAt(0).toUpperCase() +
                       item.raw.NomNaim.slice(1)
                     }}
-                    
                   </v-card-text>
 
                   <v-card-subtitle>
-                    <v-row >
-                      <v-col cols="8" class="d-flex align-self-end price-tag ">
-                        <v-chip > {{ item.raw.Price }} BYN</v-chip>
+                    <v-row>
+                      <v-col cols="8" class="d-flex align-self-end price-tag">
+                        <v-chip> {{ item.raw.Price }} </v-chip>
                         <v-chip variant="flat" color="primary"
                           >{{ item.raw.Quantity }}
                           <v-tooltip
@@ -53,14 +57,15 @@
                           >
                         </v-chip>
                       </v-col>
-                      <v-col cols="4" class="d-flex align-self-end quantity ">
+                      <v-col cols="4" class="d-flex align-self-end quantity">
                         <v-text-field
-                        v-model="item.raw.inCart"
+                          v-model="item.raw.inCart"
                           type="number"
                           density="compact"
                           variant="outlined"
                           append-icon="mdi-cart"
                           @click:append="addToCart(item.raw)"
+                          :value="item.raw.inCart === 0 ? '' : item.raw.inCart"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -131,7 +136,6 @@
               :disabled="page === 1"
               density="comfortable"
               icon="mdi-arrow-left"
-             
               rounded
               @click="prevPage"
             ></v-btn>
@@ -144,7 +148,6 @@
               :disabled="page >= pageCount"
               density="comfortable"
               icon="mdi-arrow-right"
-            
               rounded
               @click="nextPage"
             ></v-btn>
@@ -183,19 +186,26 @@
 import { inject, computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
-
-const props = defineProps<{
-  folders: Goods[];
-  goods: Goods[];
-}>();
-
 const route = useRoute();
-const tree = inject<Ref<string[]>>("tree");
+const tree = inject<Ref<string[]>>("tree", ref([])); // Initialize tree with an empty array
+const selectedContragentData = inject<Contragents>("selectedContragentData");
+//const goods = inject<Ref<Goods[]>>("goods", ref([]));
+//const folders = inject<Ref<Goods[]>>("folders");
+  const props = defineProps({
+  folders: {
+    type: Array as PropType<Goods[]>,
+    required: true,
+  },
+  goods: {
+    type: Array as PropType<Goods[]>,
+    required: true,
+  },
+});
 useHead(() => ({
   link: [
     {
       rel: "canonical",
-      href: "https://7712.by" + route.path,
+      href: "https://b2.belca.by" + route.path,
     },
   ],
 }));
@@ -215,56 +225,55 @@ const StopLoading = () => {
   loading.value = false;
 };
 
-const filteredGoods = computed(() => {
-  const searchWords = search.value.trim().split(" ");
+const filteredGoods = () => {
+   const searchWords = search.value.trim().split(" ");
 
-  if (route.params.catalog) {
-    const id = route.params.catalog[1];
+   if (route.params.catalog) {
+     const id = route.params.catalog[1];
 
-    if (id && tree && tree.value.length === 0) {
-      return props.goods.filter(
-        (good: Goods) => String(good.NomCode) === String(id)
-      );
-    }
-  }
+     if (id && tree && tree.value.length === 0) {
+       return props.goods.filter(
+         (good: Goods) => String(good.NomCode) === String(id)
+       );
+     }
+   }
 
-  if (tree && tree.value.length > 0) {
-    const selectedCategory = tree.value[0];
-    const filteredByCategory = props.goods.filter(
-      (good: Goods) => good.RoditelCode === selectedCategory
-    );
+   if (tree && tree.value.length > 0) {
+     const selectedCategory = tree.value[0];
+     const filteredByCategory = props.goods.filter(
+       (good: Goods) => good.RoditelCode === selectedCategory
+     );
 
-    if (searchWords.length > 0) {
-      const filteredBySearch = filteredByCategory.filter((good: Goods) => {
-        const goodName = good.NomNaim.toLowerCase();
-        const goodCode = good.NomCode.toLowerCase();
-        return (
-          searchWords.every((word) => goodName.includes(word.toLowerCase())) ||
-          searchWords.every((word) => goodCode.includes(word.toLowerCase()))
-        );
-      });
-      return filteredBySearch;
-    }
+     if (searchWords.length > 0) {
+       const filteredBySearch = filteredByCategory.filter((good: Goods) => {
+         const goodName = good.NomNaim.toLowerCase();
+         const goodCode = good.NomCode.toLowerCase();
+         return (
+           searchWords.every((word) => goodName.includes(word.toLowerCase())) ||
+           searchWords.every((word) => goodCode.includes(word.toLowerCase()))
+         );
+       });
+       return filteredBySearch;
+     }
 
-    return filteredByCategory;
-  }
+     return filteredByCategory;
+   }
 
-  // Search the entire catalog when tree length is 0
-  if (searchWords.length > 0) {
-    const filteredBySearch = props.goods.filter((good: Goods) => {
-      const goodName = good.NomNaim.toLowerCase();
-      const goodCode = good.NomCode.toLowerCase();
-      return (
-        searchWords.every((word) => goodName.includes(word.toLowerCase())) ||
-        searchWords.every((word) => goodCode.includes(word.toLowerCase()))
-      );
-    });
-    return filteredBySearch;
-  }
-
-  // Return all goods when tree length is 0 and there are no search words
+  // // Search the entire catalog when tree length is 0
+   if (searchWords.length > 0) {
+     const filteredBySearch = props.goods.filter((good: Goods) => {
+       const goodName = good.NomNaim.toLowerCase();
+       const goodCode = good.NomCode.toLowerCase();
+       return (
+         searchWords.every((word) => goodName.includes(word.toLowerCase())) ||
+         searchWords.every((word) => goodCode.includes(word.toLowerCase()))
+       );
+     });
+     return filteredBySearch;
+   }
+  
   return props.goods;
-});
+};
 
 const goodPicture = (article: String) => {
   // console.log('https://b2.belca.by/images/720/'+article+'.jpg')
@@ -314,8 +323,9 @@ onMounted(() => {
 });
 
 const addToCart = (item: any) => {
-  console.log(item.NomCode)
-  //item.inCart = item.Quantity;
+  console.log(item.NomCode);
+
+  item.Price = String(item.Price).replace(",", ".");
   cart.value.push(item);
 };
 </script>
