@@ -16,8 +16,17 @@ declare global {
     ZapretProdazhiNARD: string;
     Price: string;
     inCart: number;
+    [key: string]: any;
 
     [Symbol.iterator](): Iterator<Goods>;
+  }
+
+  interface Favs {
+    filter(arg0: (fav: Favs) => boolean): any;
+    map(arg0: (fav: Favs) => Goods): any;
+    find(arg0: (fav: Favs) => boolean): unknown;
+    NomCode: string;
+    push(item: Favs): number; // Add push method to interface
   }
 
   interface Ostatki {
@@ -58,6 +67,13 @@ declare global {
   interface LoginResponse {
     Kontragent: any[];
     Ответ: string;
+  }
+
+  interface Kursy {
+    Cena: string;
+    Kurs: number;
+    Kratnost: number;
+    Valuta: string;
   }
 }
 

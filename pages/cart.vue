@@ -1,6 +1,6 @@
 <template>
   <div>
-    <AppHeader :contragents="contragents as Contragents[]" />
+    <AppHeader :contragents="contragents as Contragents[]" :goods="goods as Goods[]" />
     <v-stepper
       :items="['Шаг 1', 'Шаг 2', 'Шаг 3']"
       next-text="Далее"
@@ -67,11 +67,11 @@
 
                     Цена:
                     <v-chip class="text-uppercase" size="small" label>
-                      {{ item.Price }} BYN
+                      {{ item.Price }} {{  selectedContragentData?.priceCurrency }}
                     </v-chip>
                     Сумма:
                     <v-chip class="text-uppercase" size="small" label>
-                      {{ sum(item).toFixed(2) }} BYN
+                      {{ sum(item).toFixed(2) }} {{  selectedContragentData?.priceCurrency }}
                     </v-chip>
                   </template>
 
@@ -91,7 +91,7 @@
             </v-list>
 
             <div class="d-flex align-end flex-column">
-              <v-chip>ИТОГО: {{ getTotalPrice() }} BYN</v-chip>
+              <v-chip>ИТОГО: {{ getTotalPrice() }} {{  selectedContragentData?.priceCurrency }} </v-chip>
             </div>
           </v-card>
         </v-card>
@@ -193,7 +193,7 @@ const { $mail } = useNuxtApp();
 const goods = inject<Goods[]>("goods");
 
 const contragents = inject<Contragents[]>("contragents");
-
+const selectedContragentData = inject<Contragents>("selectedContragentData");
 //Cart
 const cart = useCookie<Array<any>>("cart");
 if (!cart.value) {
@@ -224,7 +224,7 @@ const removeFromCart = (item: any) => {
   }
   // Find the corresponding good in the goods array and set inCart to 0
   if (goods) {
-    const good = goods.value.find(
+    const good = goods.find(
       (good: Goods) => good.NomCode === item.NomCode
     );
     if (good) {

@@ -123,9 +123,11 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
-      <NuxtLink to="/favorites" class="ml-3 hidden-sm-and-down">
-        <v-btn class="text-none" stacked v-tooltip="'Избранное'">
-          <v-badge color="primary" content="12">
+      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
+        <v-btn 
+        :color="favsOnly ? 'red' : 'white'"
+        @click = "changeFavsOnly()" class="text-none" stacked v-tooltip="'Избранное'">
+          <v-badge color="primary" :content="favs.length">
             <v-icon size="large" icon="mdi mdi-heart"></v-icon>
           </v-badge>
         </v-btn>
@@ -198,7 +200,8 @@
 const auth = inject<Ref<boolean>>("auth", ref(false));
 const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
-
+const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
+let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
 const props = defineProps({
   contragents: {
     type: Array as PropType<Contragents[]>,
@@ -230,6 +233,10 @@ const logout = () => {
   // storedSelectedContragent.value = "";
   if (!auth.value && route.path !== "/login") navigateTo("/login");
 };
+
+const changeFavsOnly = () => {
+  favsOnly.value = !favsOnly.value
+}
 
 if (storedSelectedContragent && storedSelectedContragent.value !== undefined)
   selectedContragent.value = storedSelectedContragent.value as string;

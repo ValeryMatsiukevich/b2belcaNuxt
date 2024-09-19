@@ -14,14 +14,14 @@ const auth = ref(false);
 const mng = ref(false);
 const boss = ref(false);
 
+const favsOnly = ref(false);
 const route = useRoute();
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 let priceType = ref("");
-
-//console.log("Login:", loginCookie);
-//console.log("Password:", passwordCookie);
-const goods = ref([]);
+const tree = ref([]);
+const favs = ref<Goods[]>([]);
+const goods = ref<Goods[]>([]);
 const selectedContragent = ref("");
 const selectedContragentData = ref<Contragents>();
 const loginData = ref<LoginResponse>();
@@ -33,12 +33,8 @@ const { data: folders } = await useAsyncData("folders", () =>
   $fetch("/api/folders")
 );
 
-// const { data: prices } = await useAsyncData("prices", () =>
-//   $fetch("/api/prices")
-// );
-
-const { data: ostatki } = await useAsyncData("ostatki", () =>
-  $fetch("/api/ostatki")
+const { data: rates } = await useAsyncData("rates", () =>
+  $fetch("/api/exchRates")
 );
 
 if (loginCookie && passwordCookie) {
@@ -55,9 +51,9 @@ if (loginCookie && passwordCookie) {
     })
   );
   loginData.value = loginDataraw.value;
-  if (loginData.value !== undefined) {
-    //console.log(loginData.value.Kontragent[0]);
-    if (loginData !== undefined) {
+  //  console.log(loginData.value);
+  if (loginData.value !== null) {
+    if (loginData.value !== null && loginData.value !== undefined) {
       if (loginData.value.Ответ === "Successful !") {
         auth.value = true;
         if (loginData.value.Kontragent[0].Manager !== false) {
@@ -73,13 +69,6 @@ if (loginCookie && passwordCookie) {
     }
   }
 }
-
-//   t fetchPrices = async (priceType: string) => {
-//   const { data: pricesData } = await useFetch<Prices[]>(
-//     `/api/prices?type=${priceType}`
-//   );
-//   prices.value = pricesData;
-// };
 
 watch(selectedContragent, async (newValue, oldValue) => {
   let newContragent = contragents.value.find(
@@ -136,37 +125,57 @@ watch(selectedContragent, async (newValue, oldValue) => {
       priceType.value = "000000114";
     }
 
-    
-   await getGoods();
-   
+    await getGoods();
+    await getFavs();
   }
 });
 
+const getGoods = async () => {
+  const goodsData = await $fetch("/api/goods", {
+    method: "POST",
+    body: JSON.stringify({
+      type: priceType.value,
+      spec: selectedContragentData.value?.KodTipSpecCen,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    onRequest({ request, options }) {
+      console.log("REQUEST ", priceType.value);
+      console.log(
+        "REQUEST BODY ",
+        JSON.stringify({
+          type: priceType.value,
+          spec: selectedContragentData.value?.KodTipSpecCen,
+        })
+      );
+    },
+    query: { type: priceType.value },
+  });
+  goods.value = goodsData;
+};
 
-const getGoods= async() =>{
-  const  goodsData  = await $fetch("/api/goods", {
-      method: "POST",
-      body: JSON.stringify({ type: priceType.value }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      onRequest({ request, options }) {
-        console.log("REQUEST ", priceType.value);
-        console.log("REQUEST BODY ", JSON.stringify({ type: priceType.value }));
-      },
-      query: { type: priceType.value },
-    });
-    goods.value = goodsData;
-  };
+const getFavs = async () => {
+  const favsData = await $fetch("/api/readFavs", {
+    method: "POST",
+    body: JSON.stringify({
+      unp: selectedContragentData.value?.UNP,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  favs.value = favsData;
+};
 
-const tree = ref([]);
 if (!auth.value && route.path !== "/login") navigateTo("/login");
 provide("contragents", contragents);
 provide("goods", goods);
-provide("ostatki", ostatki);
 provide("tree", tree);
 provide("folders", folders);
 provide("auth", auth);
+provide("favs", favs);
+provide("favsOnly", favsOnly);
 provide("mng", mng);
 provide("boss", boss);
 provide("selectedContragent", selectedContragent);
