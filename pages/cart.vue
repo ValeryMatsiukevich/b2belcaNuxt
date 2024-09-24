@@ -231,12 +231,27 @@ const incrementQuantity = (item: any) => {
   if (item.Quantity > item.inCart) {
     item.inCart++;
   }
+  writeOrder();
 };
 
 const decrementQuantity = (item: any) => {
   if (item.inCart > 0) {
     item.inCart--;
   }
+  writeOrder();
+};
+
+const writeOrder = async () => {
+  const favsData = await $fetch("/api/writeOrder", {
+    method: "POST",
+    body: JSON.stringify({
+      unp: selectedContragentData.value?.UNP,
+      order: cart.value,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 };
 
 const removeFromCart = (item: any) => {
@@ -247,11 +262,13 @@ const removeFromCart = (item: any) => {
   }
   // Find the corresponding good in the goods array and set inCart to 0
   if (goods) {
-    const good = goods.find((good: Goods) => good.NomCode === item.NomCode);
-    if (good) {
-      good.inCart = 0;
-    }
+  const good = Array.from(goods).find((good: Goods) => good.NomCode === item.NomCode);
+  if (good) {
+    good.inCart = 0;
+    good.Quantity = 0;
   }
+}
+  writeOrder();
 };
 
 const getTotalPrice = () => {
