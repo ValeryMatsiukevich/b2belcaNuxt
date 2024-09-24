@@ -137,7 +137,10 @@ const checkLogin = async () => {
      if (loginData.value.Ответ === "Successful !") {
        auth.value = true;
      }
-     if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+     if (loginData.value &&
+        loginData.value.Kontragent &&
+        loginData.value.Kontragent[0] &&
+        loginData.value.Kontragent[0].Manager) {
        mng.value = true;
      }
      if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {

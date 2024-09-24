@@ -416,6 +416,19 @@ const writeFavs = async () => {
   });
 };
 
+const writeOrder = async () => {
+  const favsData = await $fetch("/api/writeOrder", {
+    method: "POST",
+    body: JSON.stringify({
+      unp: selectedContragentData.value?.UNP,
+      order: cart.value,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
 const filteredGoods = () => {
   const searchWords = search.value.trim().split(" ");
 
@@ -491,11 +504,12 @@ const routeUtils = (NomCode: string) => {
 };
 
 //Cart
-const cart = useCookie<Array<any>>("cart");
+//const cart = useCookie<Array<any>>("cart");
+const cart = inject("cart");
 
-if (!cart.value) {
-  cart.value = [];
-}
+// if (!cart.value) {
+//   cart.value = [];
+// }
 
 const isInCart = (NomCode: string) => {
   if (cart.value) {
@@ -512,6 +526,7 @@ const syncCartWithGoods = () => {
 
     if (goodIndex !== -1) {
       props.goods[goodIndex].inCart = cartItem.inCart;
+      props.goods[goodIndex].Quantity = cartItem.inCart;
     }
   });
 };
@@ -524,7 +539,9 @@ const addToCart = (item: any) => {
   console.log(item.NomCode);
 
   item.Price = String(item.Price).replace(",", ".");
+  item.Quantity = item.inCart;
   cart.value.push(item);
+  writeOrder();
 };
 </script>
 

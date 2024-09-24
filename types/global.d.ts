@@ -75,6 +75,26 @@ declare global {
     Kratnost: number;
     Valuta: string;
   }
+  interface Orders {
+    Zakaz: string;
+    Дата: string;
+    Status: string;
+  }
+
+  interface Order {
+    Comment: string;
+    SummaDokumenta: string;
+    Valuta: string;
+    products: any[];
+  }
+  interface Managers {
+    ManagerCode: string;
+    FiszLico: string;
+    ManagerTel: string;
+    Telephones: string;
+    TelVnutr: string;
+    EMail: string;
+  }
 }
 
 // Ensure that this file is included in your tsconfig.json file under "include"

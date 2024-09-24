@@ -9,7 +9,8 @@
 </template>
 
 <script setup lang="ts">
-const cart = useCookie<Array<any>>("cart");
+//const cart = useCookie<Array<any>>("cart");
+const cart = inject("cart");
 if (!cart.value) {
   cart.value = [];
 }

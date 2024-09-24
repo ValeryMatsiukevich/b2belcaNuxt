@@ -118,15 +118,19 @@
 
       <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down">
         <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
-          <v-badge color="primary" content="12">
+          <v-badge color="primary" :content="orders.length">
             <v-icon size="large" icon="mdi mdi-invoice-list"></v-icon>
           </v-badge>
         </v-btn>
       </NuxtLink>
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
-        <v-btn 
-        :color="favsOnly ? 'red' : 'white'"
-        @click = "changeFavsOnly()" class="text-none" stacked v-tooltip="'Избранное'">
+        <v-btn
+          :color="favsOnly ? 'red' : 'white'"
+          @click="changeFavsOnly()"
+          class="text-none"
+          stacked
+          v-tooltip="'Избранное'"
+        >
           <v-badge color="primary" :content="favs.length">
             <v-icon size="large" icon="mdi mdi-heart"></v-icon>
           </v-badge>
@@ -184,9 +188,26 @@
         </v-menu>
       </div>
       <v-divider></v-divider>
-      <v-btn @click="logout()" elevation="8" v-bind="props" v-tooltip="'Выйти'">
+      <v-btn
+        v-if="mng"
+        elevation="8"
+        v-bind="props"
+        v-tooltip="'Служебный раздел'"
+      >
         <v-icon
-          v-if="auth"
+          :class="{ 'text-red': boss && mng, 'text-orange': mng && !boss }"
+          size="x-large"
+          icon="mdi mdi-home-analytics"
+        ></v-icon>
+      </v-btn>
+      <v-btn
+        v-if="auth"
+        @click="logout()"
+        elevation="8"
+        v-bind="props"
+        v-tooltip="'Выйти'"
+      >
+        <v-icon
           :class="{ 'text-red': boss && mng, 'text-orange': mng && !boss }"
           size="x-large"
           icon="mdi mdi-logout"
@@ -196,7 +217,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-
 const auth = inject<Ref<boolean>>("auth", ref(false));
 const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
@@ -220,6 +240,7 @@ const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
+const orders = inject<Orders[]>("orders") || [];
 const logout = () => {
   // Remove all cookies
   loginCookie.value = null;
@@ -235,8 +256,8 @@ const logout = () => {
 };
 
 const changeFavsOnly = () => {
-  favsOnly.value = !favsOnly.value
-}
+  favsOnly.value = !favsOnly.value;
+};
 
 if (storedSelectedContragent && storedSelectedContragent.value !== undefined)
   selectedContragent.value = storedSelectedContragent.value as string;
@@ -262,5 +283,4 @@ function startPhoneCall() {
   const phoneNumber = "+375293607712";
   window.open(`tel:${phoneNumber}`, "_blank");
 }
-
 </script>

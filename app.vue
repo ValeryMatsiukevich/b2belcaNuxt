@@ -13,15 +13,17 @@
 const auth = ref(false);
 const mng = ref(false);
 const boss = ref(false);
-
+const osnManager = ref("");
 const favsOnly = ref(false);
 const route = useRoute();
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 let priceType = ref("");
 const tree = ref([]);
+const orders = ref([]);
 const favs = ref<Goods[]>([]);
 const goods = ref<Goods[]>([]);
+const cart = ref<Goods[]>([]);
 const selectedContragent = ref("");
 const selectedContragentData = ref<Contragents>();
 const loginData = ref<LoginResponse>();
@@ -33,8 +35,8 @@ const { data: folders } = await useAsyncData("folders", () =>
   $fetch("/api/folders")
 );
 
-const { data: rates } = await useAsyncData("rates", () =>
-  $fetch("/api/exchRates")
+const { data: managers } = await useAsyncData("managers", () =>
+  $fetch("/api/managers")
 );
 
 if (loginCookie && passwordCookie) {
@@ -51,20 +53,25 @@ if (loginCookie && passwordCookie) {
     })
   );
   loginData.value = loginDataraw.value;
-  //  console.log(loginData.value);
-  if (loginData.value !== null) {
-    if (loginData.value !== null && loginData.value !== undefined) {
-      if (loginData.value.Ответ === "Successful !") {
-        auth.value = true;
-        if (loginData.value.Kontragent[0].Manager !== false) {
-          mng.value = true;
-        }
-        if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
-          boss.value = true;
-        } else {
-          boss.value = false;
-          mng.value = false;
-        }
+console.log(loginData.value);
+  if (loginData.value) {
+    if (loginData.value.Ответ === "Successful !") {
+      auth.value = true;
+      console.log("Auth:", auth.value);
+      if (
+        loginData.value &&
+        loginData.value.Kontragent &&
+        loginData.value.Kontragent[0] &&
+        loginData.value.Kontragent[0].Manager
+      ) {
+        console.log("Manager:", loginData.value.Kontragent[0].Manager);
+        mng.value = true;
+      }
+      if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+        boss.value = true;
+      } else {
+        boss.value = false;
+        mng.value = false;
       }
     }
   }
@@ -127,6 +134,11 @@ watch(selectedContragent, async (newValue, oldValue) => {
 
     await getGoods();
     await getFavs();
+    await getOrder();
+    await getOrders();
+    osnManager.value = managers.value.find(
+      (o) => o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
+    );
   }
 });
 
@@ -167,6 +179,31 @@ const getFavs = async () => {
   });
   favs.value = favsData;
 };
+const getOrder = async () => {
+  const orderData = await $fetch("/api/readOrder", {
+    method: "POST",
+    body: JSON.stringify({
+      unp: selectedContragentData.value?.UNP,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  cart.value = orderData;
+};
+
+const getOrders = async () => {
+  const ordersData = await $fetch("/api/orderList", {
+    method: "POST",
+    body: JSON.stringify({
+      unp: selectedContragentData.value?.UNP,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  orders.value = ordersData;
+};
 
 if (!auth.value && route.path !== "/login") navigateTo("/login");
 provide("contragents", contragents);
@@ -176,7 +213,12 @@ provide("folders", folders);
 provide("auth", auth);
 provide("favs", favs);
 provide("favsOnly", favsOnly);
+provide("orders", orders);
+provide("cart", cart);
 provide("mng", mng);
+provide("osnManager", osnManager);
+
+provide("managers", managers);
 provide("boss", boss);
 provide("selectedContragent", selectedContragent);
 provide("selectedContragentData", selectedContragentData);
