@@ -111,6 +111,7 @@ if (!rememberMe.value) {
 const auth = inject<Ref<boolean>>("auth", ref(false));
 const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
+const loginData = inject<Ref<LoginResponse>>("loginData");
 const login = ref("");
 const password = ref("");
 
@@ -120,7 +121,7 @@ const passwordCookie = useCookie("passwordCookie");
 const checkLogin = async () => {
   console.log(login.value);
   console.log(password.value);
-  const {data:loginData} = await useFetch("/api/login", {
+  const loginDataRaw = await $fetch("/api/login", {
     method: "POST",
     body: JSON.stringify({
       Login: login.value,
@@ -130,34 +131,38 @@ const checkLogin = async () => {
       "Content-Type": "application/json",
     },
   });
+
+  loginData.value = loginDataRaw;
   console.log(loginData.value);
   const route = useRoute();
-   if (loginData.value !== "") {
-     console.log(loginData.value);
-     if (loginData.value.Ответ === "Successful !") {
-       auth.value = true;
-     }
-     if (loginData.value &&
-        loginData.value.Kontragent &&
-        loginData.value.Kontragent[0] &&
-        loginData.value.Kontragent[0].Manager) {
-       mng.value = true;
-     }
-     if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
-       boss.value = true;
-     }
+  if (loginData.value.Ответ !== "") {
+    console.log(loginData.value);
+    if (loginData.value.Ответ === "Successful !") {
+      auth.value = true;
+    }
+    if (
+      loginData.value &&
+      loginData.value.Kontragent &&
+      loginData.value.Kontragent[0] &&
+      loginData.value.Kontragent[0].Manager
+    ) {
+      mng.value = true;
+    }
+    if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+      boss.value = true;
+    }
 
-     if (String(rememberMe.value) === "true") {
-       loginCookie.value = login.value;
-       passwordCookie.value = password.value;
-     }
+    if (String(rememberMe.value) === "true") {
+      loginCookie.value = login.value;
+      passwordCookie.value = password.value;
+    }
 
-     if (auth.value && route.path !== "/") {
-       navigateTo("/");
-     }
-   } else if (!auth.value) {
-     alert("Неверный логин или пароль!");
-   }
+    if (auth.value && route.path !== "/") {
+      navigateTo("/");
+    }
+  } else if (!auth.value) {
+    alert("Неверный логин или пароль!");
+  }
 };
 </script>
 

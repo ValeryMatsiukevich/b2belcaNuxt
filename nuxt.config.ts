@@ -1,5 +1,8 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
+  future: {
+    compatibilityVersion: 4,
+  },
   imports: {
     dirs: [
       // Scan top-level modules
@@ -9,17 +12,17 @@ export default defineNuxtConfig({
 
   site: {
     url: "https://b2.belca.by",
-    name: "Потовая продажа расходных материалов к принтерам и МФУ",
+    name: "Оптовая продажа расходных материалов к принтерам и МФУ",
     description: "Картриджи к принтеру, чернила, тонер, фотобарабаны",
     defaultLocale: "ru", // not needed if you have @nuxtjs/i18n installed
   },
-  scripts: {
-    registry: {
-      googleTagManager: {
-        id: 'AW-10987447766'
-      }
-    }
-  },
+  // scripts: {
+  //   registry: {
+  //     googleTagManager: {
+  //       id: 'AW-10987447766'
+  //     }
+  //   }
+  // },
 
   ssr: true,
   devtools: { enabled: true },

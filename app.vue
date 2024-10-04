@@ -16,11 +16,14 @@ const boss = ref(false);
 const osnManager = ref("");
 const favsOnly = ref(false);
 const route = useRoute();
+const search = ref("");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
+const infotronicManager = ref(false);
 let priceType = ref("");
 const tree = ref([]);
 const orders = ref([]);
+const ordersInfotronic = ref<orderInfotronic[]>([]);
 const favs = ref<Goods[]>([]);
 const goods = ref<Goods[]>([]);
 const cart = ref<Goods[]>([]);
@@ -53,7 +56,7 @@ if (loginCookie && passwordCookie) {
     })
   );
   loginData.value = loginDataraw.value;
-console.log(loginData.value);
+  console.log(loginData.value);
   if (loginData.value) {
     if (loginData.value.Ответ === "Successful !") {
       auth.value = true;
@@ -67,15 +70,25 @@ console.log(loginData.value);
         console.log("Manager:", loginData.value.Kontragent[0].Manager);
         mng.value = true;
       }
-      if (loginData.value.Kontragent[0].UNP.trim() === "0000000055") {
+      const UNP = loginData.value.Kontragent[0].UNP.trim();
+      if (UNP === "0000000055") {
         boss.value = true;
       } else {
         boss.value = false;
         mng.value = false;
       }
+
+      if (
+        UNP === "0000000053" ||
+        UNP === "0000000054" ||
+        UNP === "0000000055" ||
+        UNP === "100511773"
+      ) {
+        infotronicManager.value = true;
+      }
     }
   }
-}
+} else navigateTo("/login");
 
 watch(selectedContragent, async (newValue, oldValue) => {
   let newContragent = contragents.value.find(
@@ -148,6 +161,7 @@ const getGoods = async () => {
     body: JSON.stringify({
       type: priceType.value,
       spec: selectedContragentData.value?.KodTipSpecCen,
+      UNP:loginData.value.Kontragent[0].UNP,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -214,15 +228,18 @@ provide("auth", auth);
 provide("favs", favs);
 provide("favsOnly", favsOnly);
 provide("orders", orders);
+provide("ordersInfotronic", ordersInfotronic);
 provide("cart", cart);
 provide("mng", mng);
 provide("osnManager", osnManager);
-
 provide("managers", managers);
 provide("boss", boss);
 provide("selectedContragent", selectedContragent);
 provide("selectedContragentData", selectedContragentData);
 provide("loginData", loginData);
+provide("search", search);
+provide("infotronicManager", infotronicManager);
+
 useHead({
   title: "b2.belca.by",
   link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],

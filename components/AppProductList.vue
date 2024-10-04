@@ -10,6 +10,8 @@
         :items-per-page="ipp ? Number(ipp) : 6"
         :return-object="false"
         :loading="loading"
+        :search="search"
+        :custom-filter="customSearch"
         fluid
         @update:loading="StartLoading"
         @update:options="StopLoading"
@@ -230,15 +232,14 @@
         <template v-slot:header="{ page, pageCount, prevPage, nextPage }">
           <v-toolbar class="px-2">
             <v-text-field
-              class="mt-5"
               v-model="search"
-              append-inner-icon="mdi-close-circle"
-              density="compact"
-              placeholder="Фильтр списка товаров"
+              density="comfortable"
+              placeholder="Поиск"
               prepend-inner-icon="mdi-magnify"
-              style="max-width: 30%"
-              @click:append-inner="clearSearch"
-              variant="outlined"
+              style="max-width: 300px"
+              variant="solo"
+              clearable
+              hide-details
             ></v-text-field>
             <div
               class="d-flex align-center justify-center pa-4 hidden-md-and-down"
@@ -337,6 +338,7 @@
 <script lang="ts" setup>
 import { inject, computed, ref } from "vue";
 import { useRoute } from "vue-router";
+import { shallowRef } from "vue";
 
 const dialog = ref(false);
 const hover = ref(false);
@@ -358,16 +360,16 @@ const props = defineProps({
     required: true,
   },
 });
-useHead(() => ({
-  link: [
-    {
-      rel: "canonical",
-      href: "https://b2.belca.by" + route.path,
-    },
-  ],
-}));
+// useHead(() => ({
+//   link: [
+//     {
+//       rel: "canonical",
+//       href: "https://b2.belca.by" + route.path,
+//     },
+//   ],
+// }));
 
-const search = ref("");
+const search = shallowRef("");
 const loading = ref(false);
 const ipp = useCookie("ipp") || 6; // Add default value
 const clearSearch = () => {
@@ -429,9 +431,19 @@ const writeOrder = async () => {
   });
 };
 
-const filteredGoods = () => {
-  const searchWords = search.value.trim().split(" ");
+const customSearch = (value: any, search: string, item: any) => {
+  const searchKeys = ["NomCode", "NomNaim", "Price"]; // Add the keys you want to search within
+  const searchWords = search.toLowerCase().split(" "); // Разбить строку поиска на отдельные слова
 
+  return searchKeys.some((key) => {
+    const itemValue = String(item.raw[key]).toLowerCase();
+    const wordsFound = searchWords.filter((word) => itemValue.includes(word)); // Найти слова, которые есть в itemValue
+
+    return wordsFound.length === searchWords.length; // Если все слова найдены, вернуть true
+  });
+};
+
+const filteredGoods = () => {
   if (favsOnly.value) {
     // Return only favorites when favsOnly is true
     return props.goods.filter((good: Goods) =>
@@ -455,33 +467,10 @@ const filteredGoods = () => {
       (good: Goods) => good.RoditelCode === selectedCategory
     );
 
-    if (searchWords.length > 0) {
-      const filteredBySearch = filteredByCategory.filter((good: Goods) => {
-        const goodName = good.NomNaim.toLowerCase();
-        const goodCode = good.NomCode.toLowerCase();
-        return (
-          searchWords.every((word) => goodName.includes(word.toLowerCase())) ||
-          searchWords.every((word) => goodCode.includes(word.toLowerCase()))
-        );
-      });
-      return filteredBySearch;
-    }
-
     return filteredByCategory;
   }
 
   // // Search the entire catalog when tree length is 0
-  if (searchWords.length > 0) {
-    const filteredBySearch = props.goods.filter((good: Goods) => {
-      const goodName = good.NomNaim.toLowerCase();
-      const goodCode = good.NomCode.toLowerCase();
-      return (
-        searchWords.every((word) => goodName.includes(word.toLowerCase())) ||
-        searchWords.every((word) => goodCode.includes(word.toLowerCase()))
-      );
-    });
-    return filteredBySearch;
-  }
 
   return props.goods;
 };
@@ -561,11 +550,3 @@ const addToCart = (item: any) => {
   padding: 5px;
 }
 </style>
-
-<script lang="ts">
-export default {
-  name: "AppProductList",
-  // Add keep-alive to the component
-  keepAlive: true,
-};
-</script>

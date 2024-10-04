@@ -22,9 +22,9 @@ declare global {
   }
 
   interface Favs {
-    filter(arg0: (fav: Favs) => boolean): any;
-    map(arg0: (fav: Favs) => Goods): any;
-    find(arg0: (fav: Favs) => boolean): unknown;
+    filter(predicate: (fav: Favs) => boolean): Favs[];
+    map<U>(mapper: (fav: Favs) => U): U[];
+    find(predicate: (fav: Favs) => boolean): Favs | undefined;
     NomCode: string;
     push(item: Favs): number; // Add push method to interface
   }
@@ -95,6 +95,35 @@ declare global {
     TelVnutr: string;
     EMail: string;
   }
+
+  interface orderInfotronic {
+    Number: string;
+    Date: string;
+    Ref_Key: string;
+    Товары: any[];
+  }
+
+  interface infotronic1c {
+    Артикул: string;
+    Ref_Key: string;
+  }
+  interface Nom_Ost {
+    Code: string;
+    Articul: string;
+    Naim: string;
+    NaimFull: string;
+    EdIzm: string;
+    RoditelCode: string;
+    RoditelUID: string;
+    isGroup: string;
+    RynochnayaBN: string;
+    OptBN: string;
+    MelkiyOptBN: string;
+    DilerBN: string;
+    Quantity: string;
+    Sebes: string;
+    UID: string;
+  }
 }
 
-// Ensure that this file is included in your tsconfig.json file under "include"
+

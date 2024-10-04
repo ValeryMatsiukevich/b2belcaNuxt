@@ -123,6 +123,22 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
+      <NuxtLink
+        v-if="infotronicManager === true"
+        @click="getOrdersInfotronic()"
+        to="/invoicesInfotronic"
+        class="ml-3 hidden-sm-and-down"
+      >
+        <v-btn
+          class="text-none"
+          stacked
+          v-tooltip="'Список заказов Инфотроник'"
+        >
+          <v-badge color="primary" :content="1">
+            <v-icon size="large" icon="mdi mdi-truck-fast"></v-icon>
+          </v-badge>
+        </v-btn>
+      </NuxtLink>
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
         <v-btn
           :color="favsOnly ? 'red' : 'white'"
@@ -222,6 +238,9 @@ const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
 const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
 let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
+const ordersInfotronic = inject<orderInfotronic[]>("ordersInfotronic");
+const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
+
 const props = defineProps({
   contragents: {
     type: Array as PropType<Contragents[]>,
@@ -237,10 +256,12 @@ const route = useRoute();
 const telmenu = ref(false);
 const telmenumob = ref(false);
 const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
+const loginData = inject("loginData");
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 const orders = inject<Orders[]>("orders") || [];
+
 const logout = () => {
   // Remove all cookies
   loginCookie.value = null;
@@ -255,6 +276,11 @@ const logout = () => {
   if (!auth.value && route.path !== "/login") navigateTo("/login");
 };
 
+const getOrdersInfotronic = async () => {
+  const ordersInfotronicRaw = await $fetch("/api/getInfotronicOrders");
+  ordersInfotronic.value = ordersInfotronicRaw;
+};
+
 const changeFavsOnly = () => {
   favsOnly.value = !favsOnly.value;
 };
@@ -266,6 +292,7 @@ watch(selectedContragent, (newValue: string) => {
   // Store the selected contragent in the cookie
   storedSelectedContragent.value = newValue;
 });
+
 function startViberChat() {
   // Replace 'your_viber_username' with the actual Viber username
   const viberUsername = "your_viber_username";

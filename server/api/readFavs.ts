@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   console.log(credentials.unp);
 
   // Check if file exists
-  const filePath = "./public/Favlists/" + credentials.unp + ".json";
+  const filePath = "./public/Favlists/" + credentials.unp + ".JSON";
   try {
     await fs.access(filePath);
   } catch {

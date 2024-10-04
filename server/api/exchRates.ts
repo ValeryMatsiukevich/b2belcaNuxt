@@ -1,25 +1,17 @@
-import axios from "axios";
-
 export default defineEventHandler(async (event) => {
- 
-
-  try {
-    
-
-    let config = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url: `http://base.belca.by/UT/hs/Products/Kursy/`,
-      headers: {
-        Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
-      },
-    };
-
-    const response = await axios.request(config);
-    //console.log(JSON.stringify(response.data));
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
+  fetch("http://base.belca.by/UT/hs/Products/Kursy/", {
+    method: "GET",
+    headers: {
+      Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(JSON.stringify(data));
+      return data;
+    })
+    .catch((error) => {
+      console.log(error);
+      return [];
+    });
 });

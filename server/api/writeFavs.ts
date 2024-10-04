@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   
 
   // Check if file exists
-  const filePath = "./public/Favlists/" + credentials.unp + ".json";
+  const filePath = "./public/Favlists/" + credentials.unp + ".JSON";
   try {
     await fs.writeFile(filePath, JSON.stringify(credentials.favs), "utf-8");
     console.log("Favs file written successfully");

@@ -222,7 +222,7 @@ const selectedContragentData = inject<Contragents>("selectedContragentData");
 // if (!cart.value) {
 //   cart.value = [];
 // }
-const cart = inject("cart");
+const cart = inject <Ref<Goods[]>>("cart");
 
 const sum = (item: any) => {
   return item.inCart * Number(item.Price.replace(",", "."));
@@ -242,16 +242,18 @@ const decrementQuantity = (item: any) => {
 };
 
 const writeOrder = async () => {
-  const favsData = await $fetch("/api/writeOrder", {
-    method: "POST",
-    body: JSON.stringify({
-      unp: selectedContragentData.value?.UNP,
-      order: cart.value,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  if (cart) {
+    const favsData = await $fetch("/api/writeOrder", {
+      method: "POST",
+      body: JSON.stringify({
+        unp: selectedContragentData.value?.UNP,
+        order: cart.value,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
 };
 
 const removeFromCart = (item: any) => {
@@ -262,12 +264,14 @@ const removeFromCart = (item: any) => {
   }
   // Find the corresponding good in the goods array and set inCart to 0
   if (goods) {
-  const good = Array.from(goods).find((good: Goods) => good.NomCode === item.NomCode);
-  if (good) {
-    good.inCart = 0;
-    good.Quantity = 0;
+    const good = Array.from(goods).find(
+      (good: Goods) => good.NomCode === item.NomCode
+    );
+    if (good) {
+      good.inCart = 0;
+      good.Quantity = 0;
+    }
   }
-}
   writeOrder();
 };
 
@@ -281,11 +285,13 @@ const goodPicture = (article: String) => {
 };
 
 const name = useField("name");
-if(auth && selectedContragentData) name.value.value = selectedContragentData.Kontragent;
+if (auth && selectedContragentData)
+  name.value.value = selectedContragentData.Kontragent;
 const osnManager = inject<Ref<Managers>>("osnManager") || [];
 const comment = useField("comment");
 const email = useField("email");
-if(auth && selectedContragentData) email.value.value = selectedContragentData.EmailDlyaRassylky;
+if (auth && selectedContragentData)
+  email.value.value = selectedContragentData.EmailDlyaRassylky;
 const emailMng = useField("emailMng");
 emailMng.value.value = osnManager.value.EMail;
 
