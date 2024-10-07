@@ -43,7 +43,9 @@
     "@types/node-fetch": "^2.6.11",
     "@types/nodemailer": "^6.4.16",
     "@types/vue": "^1.0.31",
+    "nuxt-scheduler": "^0.1.9",
     "vite-plugin-vuetify": "^2.0.4",
-    "vuetify": "^3.6.13"
+    "vuetify": "^3.6.13",
+    "wrangler": "^3.79.0"
   }
 }

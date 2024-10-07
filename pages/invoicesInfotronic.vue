@@ -198,6 +198,23 @@ const getOrder = (orderNumber: string) => {
 const copyToBasket = () => {
   // Add order to basket logic here
   if (selectedOrder.value) {
+    selectedOrder.value.Товары.forEach((good) => {
+      const item = {
+        NomCode: good.NomCode,
+        Quantity: good.Количество,
+        Price: '1,00',
+        inCart: good.Количество,
+        Valuta: 'BYN',
+        NomNaim: goods.value.find((g) => g.NomCode === good.NomCode).NomNaim,
+
+      }
+      
+      cart.value.push(item);
+      
+      console.log("item ", item);
+    });
+    
+
     console.log("Order added to cart");
   } else {
     console.error("Selected order is not defined");

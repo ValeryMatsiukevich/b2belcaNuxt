@@ -80,7 +80,7 @@ export default defineNuxtConfig({
     "@nuxtjs/robots",
     // 'vue-yandex-maps/nuxt',
     '@nuxt/scripts',
-    
+    'nuxt-scheduler'
   ],
   //  yandexMaps: {
   //    apikey: 'e724701e-8b3c-4092-be9d-daabb8272ee6',
@@ -88,6 +88,11 @@ export default defineNuxtConfig({
   //    mapsScriptWaitDuration : false,
   //    mapsRenderWaitDuration : false
   //  },
+  
+  plugins: [
+    
+    
+  ],
   vite: {
     vue: {
       template: {

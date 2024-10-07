@@ -12,7 +12,7 @@
         max-width="1200"
       >
         <template v-slot:item.1>
-          <v-card title="" flat>
+          <v-card min-width="700" title="" flat>
             <v-card flat>
               <v-card-title class="d-flex align-center pe-2">
                 <v-icon icon="mdi-video-input-component"></v-icon> &nbsp;
@@ -213,7 +213,7 @@ declare module "#app" {
 
 const { $mail } = useNuxtApp();
 const goods = inject<Goods[]>("goods");
-const managers = inject<Managers[]>("managers") || [];
+//const managers = inject<Managers[]>("managers") || [];
 const contragents = inject<Contragents[]>("contragents");
 const selectedContragentData = inject<Contragents>("selectedContragentData");
 
@@ -222,7 +222,7 @@ const selectedContragentData = inject<Contragents>("selectedContragentData");
 // if (!cart.value) {
 //   cart.value = [];
 // }
-const cart = inject <Ref<Goods[]>>("cart");
+const cart = inject<Ref<Goods[]>>("cart");
 
 const sum = (item: any) => {
   return item.inCart * Number(item.Price.replace(",", "."));
@@ -242,7 +242,7 @@ const decrementQuantity = (item: any) => {
 };
 
 const writeOrder = async () => {
-  if (cart) {
+  if (cart && selectedContragentData) {
     const favsData = await $fetch("/api/writeOrder", {
       method: "POST",
       body: JSON.stringify({
@@ -257,22 +257,24 @@ const writeOrder = async () => {
 };
 
 const removeFromCart = (item: any) => {
-  const index = cart.value.indexOf(item);
+  if (cart) {
+    const index = cart.value.indexOf(item);
 
-  if (index !== -1) {
-    cart.value.splice(index, 1);
-  }
-  // Find the corresponding good in the goods array and set inCart to 0
-  if (goods) {
-    const good = Array.from(goods).find(
-      (good: Goods) => good.NomCode === item.NomCode
-    );
-    if (good) {
-      good.inCart = 0;
-      good.Quantity = 0;
+    if (index !== -1) {
+      cart.value.splice(index, 1);
     }
+    // Find the corresponding good in the goods array and set inCart to 0
+    if (goods) {
+      const good = Array.from(goods).find(
+        (good: Goods) => good.NomCode === item.NomCode
+      );
+      if (good) {
+        good.inCart = 0;
+        good.Quantity = 0;
+      }
+    }
+    writeOrder();
   }
-  writeOrder();
 };
 
 const getTotalPrice = () => {

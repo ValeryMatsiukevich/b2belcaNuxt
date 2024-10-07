@@ -4,7 +4,7 @@ import fs from "fs/promises";
 export default defineEventHandler(async (event) => {
   console.log("WRITEORDER API CALLED");
   const body = await readBody(event);
-  console.log(body);
+  // console.log(body);
   
 
   // Check if file exists

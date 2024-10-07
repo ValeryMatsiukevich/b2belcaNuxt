@@ -52,7 +52,7 @@
                     >
                       <v-tooltip
                         origin="overlap"
-                        :open-delay="500"
+                        :open-delay="100"
                         :close-delay="200"
                         opacity-10
                       >
@@ -339,7 +339,7 @@
 import { inject, computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { shallowRef } from "vue";
-
+const cart = inject<Ref<Goods[]>>("cart");
 const dialog = ref(false);
 const hover = ref(false);
 const currentImage = ref("");
@@ -347,7 +347,9 @@ const route = useRoute();
 const tree = inject<Ref<string[]>>("tree", ref([])); // Initialize tree with an empty array
 const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
 let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
-const selectedContragentData = inject<Contragents>("selectedContragentData");
+const selectedContragentData = inject<Ref<Contragents>>(
+  "selectedContragentData"
+);
 //const goods = inject<Ref<Goods[]>>("goods", ref([]));
 //const folders = inject<Ref<Goods[]>>("folders");
 const props = defineProps({
@@ -400,35 +402,50 @@ const toggleFav = (nomCode: string) => {
     // Add item to favs
     favs.value.push({
       NomCode: nomCode,
+      filter: (predicate: (fav: Favs) => boolean) =>
+        favs.value.filter(predicate),
+      map: (mapper: (fav: Favs) => any) => favs.value.map(mapper),
+      find: (predicate: (fav: Favs) => boolean) => favs.value.find(predicate),
+      push: (item: Favs) => {
+        favs.value.push(item);
+        return favs.value.length;
+      },
     });
   }
   writeFavs();
 };
 
 const writeFavs = async () => {
-  const favsData = await $fetch("/api/writeFavs", {
-    method: "POST",
-    body: JSON.stringify({
-      unp: selectedContragentData.value?.UNP,
-      favs: favs.value,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  if (selectedContragentData) {
+    const favsData = await $fetch("/api/writeFavs", {
+      method: "POST",
+      body: JSON.stringify({
+        unp: selectedContragentData.value.UNP,
+        favs: favs.value,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } else {
+    console.error("selectedContragentData is undefined");
+  }
 };
 
 const writeOrder = async () => {
-  const favsData = await $fetch("/api/writeOrder", {
-    method: "POST",
-    body: JSON.stringify({
-      unp: selectedContragentData.value?.UNP,
-      order: cart.value,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  if (selectedContragentData && cart) {
+    const cartValue = (cart as Ref<Goods[]>).value; // Cast cart to Ref<Goods[]>
+    const orderData = await $fetch("/api/writeOrder", {
+      method: "POST",
+      body: JSON.stringify({
+        unp: selectedContragentData.value.UNP,
+        order: cartValue,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
 };
 
 const customSearch = (value: any, search: string, item: any) => {
@@ -494,30 +511,31 @@ const routeUtils = (NomCode: string) => {
 
 //Cart
 //const cart = useCookie<Array<any>>("cart");
-const cart = inject("cart");
 
 // if (!cart.value) {
 //   cart.value = [];
 // }
 
 const isInCart = (NomCode: string) => {
-  if (cart.value) {
+  if (cart) {
     return cart.value.some((cartItem: any) => cartItem.NomCode === NomCode);
   }
   return false;
 };
 // Function to sync cart with goods
 const syncCartWithGoods = () => {
-  cart.value.forEach((cartItem: any) => {
-    const goodIndex = props.goods.findIndex(
-      (good: Goods) => good.NomCode === cartItem.NomCode
-    );
+  if (cart && props.goods) {
+    cart.value.forEach((cartItem: any) => {
+      const goodIndex = props.goods.findIndex(
+        (good: Goods) => good.NomCode === cartItem.NomCode
+      );
 
-    if (goodIndex !== -1) {
-      props.goods[goodIndex].inCart = cartItem.inCart;
-      props.goods[goodIndex].Quantity = cartItem.inCart;
-    }
-  });
+      if (goodIndex !== -1 && props.goods[goodIndex]) {
+        props.goods[goodIndex].inCart = cartItem.inCart;
+        props.goods[goodIndex].Quantity = cartItem.inCart;
+      }
+    });
+  }
 };
 
 onMounted(() => {
@@ -525,12 +543,14 @@ onMounted(() => {
 });
 
 const addToCart = (item: any) => {
-  console.log(item.NomCode);
+  if (cart) {
+    console.log(item.NomCode);
 
-  item.Price = String(item.Price).replace(",", ".");
-  item.Quantity = item.inCart;
-  cart.value.push(item);
-  writeOrder();
+    item.Price = String(item.Price).replace(",", ".");
+    item.Quantity = item.inCart;
+    cart.value.push(item);
+    writeOrder();
+  }
 };
 </script>
 
