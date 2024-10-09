@@ -109,7 +109,7 @@
 
         <template v-slot:item.2>
           <v-card title="Детали заказа" flat>
-            <form @submit.prevent="submit">
+            <form>
               <v-text-field
                 v-model="name.value.value"
                 :error-messages="name.errorMessage.value"
@@ -134,55 +134,11 @@
                 label="Комментарий"
               ></v-text-field>
 
-              <!-- <v-select
-              v-model="select.value.value"
-              :error-messages="select.errorMessage.value"
-              :items="delivery"
-              label="Выберите вариант доставки"
-            ></v-select>
-            <v-text-field
-              v-if="
-                select.value.value !== 'Самовывоз' &&
-                select.value.value !== undefined
-              "
-              v-model="address.value.value"
-              :counter="10"
-              :error-messages="address.errorMessage.value"
-              label="Адрес доставки*"
-            ></v-text-field>
-            <v-select
-              v-model="select1.value.value"
-              :error-messages="select1.errorMessage.value"
-              :items="payment"
-              label="Выберите вариант оплаты"
-            ></v-select>
-
-            <v-checkbox
-              v-model="checkbox.value.value"
-              :error-messages="checkbox.errorMessage.value"
-              label="Даю согласие на обработку персональных данных"
-              type="checkbox"
-              value="1"
-            ></v-checkbox> -->
-
               <v-btn class="mt-1 mb-2 mr-2" @click="handleReset">
                 Очистить
               </v-btn>
-              <v-btn class="me-4" type="submit"> Отправить </v-btn>
+              <v-btn class="me-4" @click="submitOrder()"> Отправить </v-btn>
             </form>
-          </v-card>
-        </template>
-
-        <template v-slot:item.3>
-          <v-card title="Спасибо за заказ!">
-            <v-card-text>
-              Ваш заказ успешно размещен, в ближайшее время с вами свяжется
-              менеджер для уточнения деталей.
-            </v-card-text>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-            </v-card-actions>
           </v-card>
         </template>
       </v-stepper>
@@ -215,7 +171,9 @@ const { $mail } = useNuxtApp();
 const goods = inject<Goods[]>("goods");
 //const managers = inject<Managers[]>("managers") || [];
 const contragents = inject<Contragents[]>("contragents");
-const selectedContragentData = inject<Contragents>("selectedContragentData");
+const selectedContragentData = inject<Ref<Contragents>>(
+  "selectedContragentData"
+);
 
 //Cart
 // const cart = useCookie<Array<any>>("cart");
@@ -278,7 +236,8 @@ const removeFromCart = (item: any) => {
 };
 
 const getTotalPrice = () => {
-  return cart.value.reduce((total, item) => total + sum(item), 0).toFixed(2);
+  if (cart)
+    return cart.value.reduce((total, item) => total + sum(item), 0).toFixed(2);
 };
 
 const goodPicture = (article: String) => {
@@ -288,50 +247,22 @@ const goodPicture = (article: String) => {
 
 const name = useField("name");
 if (auth && selectedContragentData)
-  name.value.value = selectedContragentData.Kontragent;
-const osnManager = inject<Ref<Managers>>("osnManager") || [];
+  name.value.value = selectedContragentData.value.Kontragent;
+const osnManager = inject<Ref<Managers>>("osnManager");
 const comment = useField("comment");
 const email = useField("email");
 if (auth && selectedContragentData)
-  email.value.value = selectedContragentData.EmailDlyaRassylky;
+  email.value.value = selectedContragentData.value.EmailDlyaRassylky;
 const emailMng = useField("emailMng");
-emailMng.value.value = osnManager.value.EMail;
-
-//const select = useField<string>("select");
-//const select1 = useField<string>("select1");
-//const checkbox = useField("checkbox");
+if (osnManager) emailMng.value.value = osnManager.value.EMail;
 
 // Retrieve cookies
 const nameCookie = useCookie<string>("name");
-//const addressCookie = useCookie<string>("address");
-const phoneCookie = useCookie<string>("phone");
-const emailCookie = useCookie<string>("email");
-//const selectCookie = useCookie<string>("select");
-//const select1Cookie = useCookie<string>("select1");
-//const checkboxCookie = useCookie<string>("checkbox");
 
-// Set initial form values from cookie values
-//if (nameCookie.value) name.value.value = nameCookie.value;
-//if (addressCookie.value) address.value.value = addressCookie.value;
-//if (phoneCookie.value) phone.value.value = phoneCookie.value;
-//if (emailCookie.value) email.value.value = emailCookie.value;
-//if (selectCookie.value) select.value.value = selectCookie.value;
-//if (select1Cookie.value) select1.value.value = select1Cookie.value;
-//if (checkboxCookie.value) checkbox.value.value = checkboxCookie.value;
+const emailCookie = useCookie<string>("email");
 
 // Initialize form
-//const { handleSubmit, values } = useForm();
 
-const delivery = ref([
-  "Самовывоз",
-  "Доставка курьером по г.Минск",
-  "Доставка перевозчиком по РБ",
-]);
-const payment = ref([
-  "Оплата при получении",
-  "Оплата картой",
-  "Оплата через ЕРИП",
-]);
 const { handleSubmit, handleReset } = useForm({
   validationSchema: {
     name(value: string) {
@@ -357,29 +288,53 @@ const { handleSubmit, handleReset } = useForm({
     },
   },
 });
-const submit = handleSubmit((values) => {
+const submitOrder = async () => {
   let text = "";
-  for (let key in values) {
-    text += `${key}: ${values[key]}\n`;
+
+  if (cart) {
+    cart.value.forEach((value) => {
+      text += "Арт: " + value.NomCode;
+      text += " Наим: " + value.NomNaim;
+      text += " Кол-во: " + value.inCart;
+      text += " Цена: " + value.Price.replace(",", ".");
+      text +=
+        " Сумма: " +
+        Number(value.Price.replace(",", ".")) * value.inCart +
+        "\r\n";
+    });
+
+    const sentEmailResult = await $fetch("/api/sendEmail", {
+      method: "POST",
+      body: JSON.stringify({
+        to: osnManager?.value.EMail,
+        text: comment.value.value,
+        subject: "Заказ с сайта B2.Belca.by",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log(sentEmailResult);
+
+    if (selectedContragentData) {
+      const sentResult = await $fetch("/api/sendOrderTo1C", {
+        method: "POST",
+        body: JSON.stringify({
+          UNP: selectedContragentData.value.UNP,
+          Comment: comment.value.value,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      alert("Заказ успешно отправлен в обработку." + JSON.stringify(sentResult));
+    }
+
+    cart.value = [];
+    navigateTo("/");
   }
-  cart.value.forEach((value) => {
-    text += "Арт: " + value.NomCode;
-    text += " Наим: " + value.NomNaim;
-    text += " Кол-во: " + value.inCart;
-    text += " Цена: " + value.Price.replace(",", ".");
-    text += " Сумма: " + value.Price.replace(",", ".") * value.inCart + "\r\n";
-  });
-
-  $mail.send({
-    from: "order@belca.by",
-    subject: "Заказ с cайта b2.belca.by",
-    text: text,
-  });
-
-  //alert(text);
-  alert("Заказ успешно отправлен в обработку");
-  cart.value = [];
-});
+};
 </script>
 
 <style></style>

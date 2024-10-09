@@ -48,7 +48,7 @@ export default defineNuxtConfig({
       
       {
         message: {
-          to: "7712@cprint.by",
+          to: "valery@infotronic.by",
           cc: "valery@infotronic.by",
         },
         smtp: {

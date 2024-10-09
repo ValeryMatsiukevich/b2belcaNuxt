@@ -14,7 +14,7 @@ export default async () => {
     const data = await response.json();
     // process data
     // Check if file exists
-    console.log("CATALOG API CALLED");
+    console.log("ost8skl API CALLED");
     const filePath = "./public/ost8skl.json";
     try {
       await fs.writeFile(filePath, JSON.stringify(data), "utf-8");

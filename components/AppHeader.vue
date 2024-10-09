@@ -106,7 +106,7 @@
 
       <v-divider></v-divider>
 
-      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
+      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down" v-if="goods">
         <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
           <v-badge color="primary" :content="goods.length">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
@@ -116,7 +116,7 @@
 
       <AppCart />
 
-      <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down">
+      <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down" v-if="orders">
         <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
           <v-badge color="primary" :content="orders.length">
             <v-icon size="large" icon="mdi mdi-invoice-list"></v-icon>
@@ -124,7 +124,7 @@
         </v-btn>
       </NuxtLink>
       <NuxtLink
-        v-if="infotronicManager === true"
+        v-if="infotronicManager === true && selectedContragentData?.UNP==='100511773'"
         @click="getOrdersInfotronic()"
         to="/invoicesInfotronic"
         class="ml-3 hidden-sm-and-down"
@@ -134,7 +134,7 @@
           stacked
           v-tooltip="'Список заказов Инфотроник'"
         >
-          <v-badge color="primary" :content="1">
+          <v-badge v-if = "ordersInfotronic" color="primary" :content="ordersInfotronic.length">
             <v-icon size="large" icon="mdi mdi-truck-fast"></v-icon>
           </v-badge>
         </v-btn>
@@ -147,7 +147,7 @@
           stacked
           v-tooltip="'Избранное'"
         >
-          <v-badge color="primary" :content="favs.length">
+          <v-badge v-if="favs" color="primary" :content="favs.length">
             <v-icon size="large" icon="mdi mdi-heart"></v-icon>
           </v-badge>
         </v-btn>
@@ -155,53 +155,11 @@
 
       <v-divider></v-divider>
 
-      <div class="text-center">
-        <v-menu
-          v-model="telmenu"
-          :close-on-content-click="false"
-          location="end"
-        >
-          <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" class="hidden-sm-and-down">
-              <v-icon color="cyan" icon="mdi-phone-outline" />+375 (29) 360-7712
-            </v-btn>
-          </template>
-
-          <v-card min-width="300">
-            <v-list>
-              <v-list-item prepend-avatar="/public/phone.png" title="Телефон ">
-                <template v-slot:append>
-                  <v-btn
-                    icon="mdi-phone"
-                    size="x-small"
-                    @click="startPhoneCall"
-                  ></v-btn>
-                </template>
-              </v-list-item>
-              <v-list-item prepend-avatar="/public/viber.png" title="Viber ">
-                <template v-slot:append>
-                  <v-btn
-                    icon="mdi-chat"
-                    size="x-small"
-                    @click="startViberChat"
-                  ></v-btn>
-                </template>
-              </v-list-item>
-              <v-list-item
-                prepend-avatar="/public/telegram.png"
-                title="Телеграм "
-              >
-                <template v-slot:append>
-                  <v-btn
-                    icon="mdi-chat"
-                    size="x-small"
-                    @click="startTelegramChat"
-                  ></v-btn>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card>
-        </v-menu>
+      <div class="text-center" v-if="osnManager?.ManagerTel">
+        <v-btn variant="outlined" class="hidden-sm-and-down" @click="startPhoneCall" v-tooltip="osnManager.ManagerCode">
+          <v-icon color="cyan" icon="mdi-phone-outline" />
+          {{ osnManager?.ManagerTel }}
+        </v-btn>
       </div>
       <v-divider></v-divider>
       <v-btn
@@ -237,6 +195,7 @@ const auth = inject<Ref<boolean>>("auth", ref(false));
 const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
 const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
+const osnManager = inject<Ref<Managers>>("osnManager");
 let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
 const ordersInfotronic = inject<orderInfotronic[]>("ordersInfotronic");
 const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
@@ -256,6 +215,7 @@ const route = useRoute();
 const telmenu = ref(false);
 const telmenumob = ref(false);
 const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
+const selectedContragentData = inject<Ref<Contragents>>("selectedContragentData"); 
 const loginData = inject("loginData");
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
@@ -307,7 +267,7 @@ function startTelegramChat() {
 
 function startPhoneCall() {
   // Replace '+375293607712' with the actual phone number
-  const phoneNumber = "+375293607712";
+  const phoneNumber = osnManager?.value.ManagerTel;
   window.open(`tel:${phoneNumber}`, "_blank");
 }
 </script>

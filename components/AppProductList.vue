@@ -31,7 +31,8 @@
                     isInCart(item.raw.NomCode) ? 'cyan-darken-3' : 'default'
                   "
                   height="25vh"
-                  variant="tonal"
+                  variant="elevated"
+                  class="border-opacity-100"
                   :title="item.raw.NomCode"
                   rounded="0"
                 >
@@ -93,7 +94,7 @@
                   <v-card-subtitle>
                     <v-row>
                       <v-col cols="8" class="d-flex align-self-end price-tag">
-                        <v-chip>
+                        <v-chip variant="elevated" color="black">
                           {{ item.raw.Price }}
                           {{ selectedContragentData?.priceCurrency }}
                         </v-chip>
@@ -340,6 +341,7 @@ import { inject, computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { shallowRef } from "vue";
 const cart = inject<Ref<Goods[]>>("cart");
+const infotronicManager = inject<Ref<boolean>>("infotronicManager");
 const dialog = ref(false);
 const hover = ref(false);
 const currentImage = ref("");

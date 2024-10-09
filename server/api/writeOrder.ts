@@ -5,10 +5,15 @@ export default defineEventHandler(async (event) => {
   console.log("WRITEORDER API CALLED");
   const body = await readBody(event);
   // console.log(body);
-  
 
+  let filePath = "";
   // Check if file exists
-  const filePath = "./public/Orders/" + body.unp + ".JSON";
+  if (process.env.NODE_ENV === "development") {
+    filePath = "./public/Orders/" + body.unp + ".JSON";
+  } else {
+    filePath =
+      "/var/www/www-root/data/www/b2.belca.by/Orders/" + body.unp + ".JSON";
+  }
   try {
     await fs.writeFile(filePath, JSON.stringify(body.order), "utf-8");
     console.log("Order file written successfully");

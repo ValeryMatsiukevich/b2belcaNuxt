@@ -4,7 +4,7 @@
       :contragents="contragents as Contragents[]"
       :goods="goods as Goods[]"
     />
-    <template v-if="ordersInfotronic.length > 0">
+    <template v-if="ordersInfotronic && ordersInfotronic.length > 0">
       <v-card>
         <v-table height="500" fixed-header hover>
           <thead>
@@ -128,53 +128,70 @@
 </template>
 
 <script lang="ts" setup>
-const goods = inject<Goods[]>("goods");
+const goods = inject<Ref<Goods[]>>("goods");
 const auth = inject<Ref<boolean>>("auth", ref(false));
-const contragents = inject<Contragents[]>("contragents");
-const ordersInfotronic = inject<orderInfotronic[]>("ordersInfotronic");
+const contragents = inject<Ref<Contragents[]>>("contragents");
+const ordersInfotronic = inject<Ref<orderInfotronic[]>>("ordersInfotronic");
+const selectedContragentData = inject<Ref<Contragents>>(
+  "selectedContragentData"
+);
 const cart = inject<Ref<Order[]>>("cart", ref([]));
 
 const isActive = ref(false);
 const selectedOrder = ref<any>(null);
 const getArticle = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good) return good.Articul;
-  else return "НЕ БЕЛКА";
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good) return good.Articul;
+    else return "НЕ БЕЛКА";
+  }
 };
 const getCode = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good) return good.NomCode;
-  else return "НЕ БЕЛКА";
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good) return good.NomCode;
+    else return "НЕ БЕЛКА";
+  }
 };
 const getNaim = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good) return good.NomNaim;
-  else return "НЕ БЕЛКА";
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good) return good.NomNaim;
+    else return "НЕ БЕЛКА";
+  }
 };
 const ostTrost = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good && good.hasOwnProperty("good.Skl000000006"))
-    return good.Skl000000006;
-  else if (good && good.Quantity !== undefined) return good.Quantity;
-  else return 0;
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good && good.hasOwnProperty("good.Skl000000006"))
+      return good.Skl000000006;
+    else if (good && good.Quantity !== undefined) return good.Quantity;
+    else return 0;
+  }
 };
 const resTrost = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good && good.hasOwnProperty("good.Res000000006"))
-    return good.Res000000006;
-  else return "0";
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good && good.hasOwnProperty("good.Res000000006"))
+      return good.Res000000006;
+    else return "0";
+  }
 };
 const ostKol = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good && good.hasOwnProperty("good.Skl000000014"))
-    return good.Skl000000014;
-  else return "0";
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good && good.hasOwnProperty("good.Skl000000014"))
+      return good.Skl000000014;
+    else return "0";
+  }
 };
 const resKol = (Номенклатура_Key: string) => {
-  let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-  if (good && good.hasOwnProperty("good.Res000000014"))
-    return good.Res000000014;
-  else return "0";
+  if (goods) {
+    let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
+    if (good && good.hasOwnProperty("good.Res000000014"))
+      return good.Res000000014;
+    else return "0";
+  }
 };
 const getOrder = (orderNumber: string) => {
   console.log(orderNumber);
@@ -183,7 +200,7 @@ const getOrder = (orderNumber: string) => {
       (on: any) => on.Number === orderNumber
     );
     if (selectedOrder.value) {
-      selectedOrder.value.Товары.forEach((good) => {
+      selectedOrder.value.Товары.forEach((good: Goods) => {
         good.NomCode = getCode(good.Номенклатура_Key);
         good.Articul = getArticle(good.Номенклатура_Key);
         console.log("good.NomCode ", good.NomCode);
@@ -195,26 +212,41 @@ const getOrder = (orderNumber: string) => {
   }
 };
 
+const writeOrder = async () => {
+  if (selectedContragentData && cart) {
+    const cartValue = cart.value; // Cast cart to Ref<Goods[]>
+    const orderData = await $fetch("/api/writeOrder", {
+      method: "POST",
+      body: JSON.stringify({
+        unp: selectedContragentData.value.UNP,
+        order: cartValue,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+};
 const copyToBasket = () => {
   // Add order to basket logic here
-  if (selectedOrder.value) {
-    selectedOrder.value.Товары.forEach((good) => {
+  cart.value = [];
+  if (goods && selectedOrder.value) {
+    selectedOrder.value.Товары.forEach((good: Goods) => {
       const item = {
         NomCode: good.NomCode,
         Quantity: good.Количество,
-        Price: '1,00',
+        Price: "1,00",
         inCart: good.Количество,
-        Valuta: 'BYN',
+        Valuta: "BYN",
         NomNaim: goods.value.find((g) => g.NomCode === good.NomCode).NomNaim,
+      };
 
-      }
-      
       cart.value.push(item);
-      
+
       console.log("item ", item);
     });
-    
 
+    writeOrder();
     console.log("Order added to cart");
   } else {
     console.error("Selected order is not defined");

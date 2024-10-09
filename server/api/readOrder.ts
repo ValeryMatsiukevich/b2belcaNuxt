@@ -5,9 +5,14 @@ export default defineEventHandler(async (event) => {
   console.log("READORDER API CALLED");
   const body = await readBody(event);
   console.log(body.unp);
-
+  let filePath = "";
   // Check if file exists
-  const filePath = "./public/Orders/" + body.unp + ".JSON";
+  if (process.env.NODE_ENV === "development") {
+    filePath = "./public/Orders/" + body.unp + ".JSON";
+  } else {
+    filePath =
+      "/var/www/www-root/data/www/b2.belca.by/Orders/" + body.unp + ".JSON";
+  }
   try {
     await fs.access(filePath);
   } catch {
@@ -17,7 +22,7 @@ export default defineEventHandler(async (event) => {
 
   const data = await fs.readFile(filePath, "utf-8");
   let order = JSON.parse(data);
- // order = favs.map((item:Goods) => ({ NomCode: item.NomCode }));
+  // order = favs.map((item:Goods) => ({ NomCode: item.NomCode }));
   if (order !== undefined) return order;
   else return [];
 });
