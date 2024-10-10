@@ -9,11 +9,9 @@
 </template>
 
 <script setup lang="ts">
-//const cart = useCookie<Array<any>>("cart");
-const cart = inject<Ref<Goods[]>>("cart");
-if (!cart.value) {
-  cart.value = [];
-}
+
+const cart = inject<Ref<Goods[]>>("cart") || ref([]);
+
 const getTotalItems = () => {
   return cart.value.length;
 };

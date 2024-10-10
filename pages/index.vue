@@ -1,6 +1,6 @@
 <template>
   <div id="start">
-    <AppHeader
+    <AppHeader v-if="goods && contragents" 
       :contragents="contragents as Contragents[]"
       :goods="goods as Goods[]"
     />
@@ -13,14 +13,14 @@
     </v-card>
     <v-no-ssr>
       <v-carousel show-arrows="hover" cycle>
-        <v-carousel-item cover>
-          <v-img :src="img1"> </v-img>
+        <v-carousel-item >
+          <v-img cover :src="img1"> </v-img>
         </v-carousel-item>
-        <v-carousel-item cover>
-          <v-img :src="img2"> </v-img>
+        <v-carousel-item >
+          <v-img cover :src="img2"> </v-img>
         </v-carousel-item>
-        <v-carousel-item cover>
-          <v-img :src="img3"> </v-img>
+        <v-carousel-item >
+          <v-img  cover :src="img3"> </v-img>
         </v-carousel-item>
       </v-carousel>
     </v-no-ssr>

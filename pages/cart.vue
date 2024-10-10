@@ -246,8 +246,10 @@ const goodPicture = (article: String) => {
 };
 
 const name = useField("name");
-if (auth && selectedContragentData)
+if(selectedContragentData && selectedContragentData.value === undefined) navigateTo('/');
+if (selectedContragentData && auth && selectedContragentData.value !== undefined) {
   name.value.value = selectedContragentData.value.Kontragent;
+}
 const osnManager = inject<Ref<Managers>>("osnManager");
 const comment = useField("comment");
 const email = useField("email");
@@ -256,10 +258,6 @@ if (auth && selectedContragentData)
 const emailMng = useField("emailMng");
 if (osnManager) emailMng.value.value = osnManager.value.EMail;
 
-// Retrieve cookies
-const nameCookie = useCookie<string>("name");
-
-const emailCookie = useCookie<string>("email");
 
 // Initialize form
 
@@ -267,7 +265,7 @@ const { handleSubmit, handleReset } = useForm({
   validationSchema: {
     name(value: string) {
       if (value?.length >= 2) {
-        nameCookie.value = value;
+
         return true;
       }
       return "Наименование должно быть минимум 2 символа.";
@@ -279,7 +277,7 @@ const { handleSubmit, handleReset } = useForm({
     email(value: string) {
       if (value) {
         if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
-          emailCookie.value = value;
+
           return true;
         }
 
@@ -328,7 +326,9 @@ const submitOrder = async () => {
         },
       });
 
-      alert("Заказ успешно отправлен в обработку." + JSON.stringify(sentResult));
+      alert(
+        "Заказ успешно отправлен в обработку." + JSON.stringify(sentResult)
+      );
     }
 
     cart.value = [];

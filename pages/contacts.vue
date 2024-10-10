@@ -1,42 +1,42 @@
 <template>
   <div>
-    <AppHeader :contragents="contragents as Contragents[]" />
+    <AppHeader
+      :contragents="contragents as Contragents[]"
+      :goods="goods as Goods[]"
+    />
     <v-row>
       <v-col cols="12" md="6">
         <v-card
           class="mt-5 mb-5"
-          title="ООО «КопиксПринт»"
-          prepend-icon="mdi-card-account-mail"
+          title="Наши контакты"
+          prepend-icon="mdi-phone"
         >
-          <v-card-subtitle> Юридический адрес: </v-card-subtitle>
-          <v-card-text>
-            Республика Беларусь, 220113, Минская обл., Минский р-н, Новодворский
-            с/с, д. Большой Тростенец, ул. Западная, 43/6, каб. 17
-          </v-card-text>
-          <v-card-subtitle> Почтовый адрес: </v-card-subtitle>
-          <v-card-text>
-            220113, г. Минск, ул. Я. Коласа, д. 53, корп. 3, помещ. 1Н
-          </v-card-text>
-          <v-card-subtitle> Банковские реквизиты: </v-card-subtitle>
-          <v-card-text>
-            Р/с BY95PJCB30120263921000000933 в «Приорбанк» ОАО ЦБУ 114 г. Минск,
-            пр. Партизанский, 56/2, БИК PJCBBY2X УНП 691461733 ОКПО 300908456000
-          </v-card-text>
-          <v-card-subtitle> Реквизиты: </v-card-subtitle>
-          <v-card-text>
-            УНП 691461733 Свидетельство 691461733, Минским районным
-            исполнительным комитетом
-          </v-card-text>
-          <v-card-subtitle> Контактные телефоны: </v-card-subtitle>
-          <v-card-text> +375-29-390-7712 </v-card-text>
-          <v-card-text> E-mail: 7712@cprint.by </v-card-text>
-          <v-card-title>
-            <v-icon icon="mdi-credit-card-marker"></v-icon> Пункт самовывоза
-          </v-card-title>
-          <v-card-text>
-            г. Минск, ул. Якуба Коласа, 53 корп. 3, пом 1 (въезд со стороны ул.
-            Ломоносова, 10)
-          </v-card-text>
+          <div class="row">
+            <div class="col-md-4 col-sm-6 col-xs-6">
+              <p><strong>Отдел оптовых продаж:</strong></p>
+            </div>
+            <div class="col-md-4 col-sm-6 col-xs-6">
+              <p><strong>Контактный телефон:</strong></p>
+            </div>
+            <div class="col-md-4 hidden-sm hidden-xs">
+              <p><strong>Внутренний номер:</strong></p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 col-sm-6 col-xs-6"><p>Ольга Климович</p></div>
+            <div class="col-md-4 col-sm-6 col-xs-6">
+              <p>
+                <a class="tel" href="tel:+375295864105">+375 29 586-41-05</a>
+                <a
+                  class="tg"
+                  title="Telegram"
+                  href="https://t.me/VolhaKlimovich"
+                  target="_blank"
+                ></a>
+              </p>
+            </div>
+            <div class="col-md-4 hidden-sm hidden-xs"><p>401</p></div>
+          </div>
         </v-card>
       </v-col>
       <v-col cols="12" md="6">
@@ -55,7 +55,8 @@
 </template>
 
 <script lang="ts" setup>
-const contragents = inject<Contragents[]>("contragents");
+const contragents = inject<Ref<Contragents[]>>("contragents");
+const goods = inject<Goods[]>("goods");
 </script>
 
 <style></style>

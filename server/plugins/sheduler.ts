@@ -4,6 +4,8 @@ import getOst8skl1C from "~~/server/api/getOst8skl1C";
 import getManagers1C from "~~/server/api/getManagers1C";
 import getContragents1C from "~~/server/api/getContragents1C";
 import getPrices from "../api/getPrices";
+import getBalance1C from "../api/getBalance1C";
+import getInvoices1C from "../api/getInvoices1C";
 
 export default defineNitroPlugin(() => {
   startScheduler();
@@ -23,6 +25,8 @@ function startScheduler() {
       getCatalog1C();
       getManagers1C();
       getContragents1C();
+      getBalance1C();
+      getInvoices1C();
     })
     .everyFourHours();
 }

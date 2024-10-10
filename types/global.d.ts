@@ -124,6 +124,13 @@ declare global {
     Sebes: string;
     UID: string;
   }
+
+  interface Balance {
+    Organizaciya: string;
+    Summa: number;
+    SummaNal: number;
+    UNP: string;
+  }
 }
 
 

@@ -21,63 +21,11 @@
             <v-list-item-title>Корзина</v-list-item-title>
           </v-list-item>
           <v-spacer></v-spacer>
-          <v-list-item>
-            <v-menu
-              v-model="telmenumob"
-              :close-on-content-click="false"
-              location="end"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn v-bind="props">
-                  <v-icon color="cyan" icon="mdi-phone-outline" />+375 (29)
-                  360-7712
-                </v-btn>
-              </template>
 
-              <v-card min-width="300">
-                <v-list>
-                  <v-list-item
-                    prepend-avatar="/public/phone.png"
-                    title="Телефон "
-                  >
-                    <template v-slot:append>
-                      <v-btn
-                        icon="mdi-phone"
-                        size="x-small"
-                        @click="startPhoneCall"
-                      ></v-btn>
-                    </template>
-                  </v-list-item>
-                  <v-list-item
-                    prepend-avatar="/public/viber.png"
-                    title="Viber "
-                  >
-                    <template v-slot:append>
-                      <v-btn
-                        icon="mdi-chat"
-                        size="x-small"
-                        @click="startViberChat"
-                      ></v-btn>
-                    </template>
-                  </v-list-item>
-                  <v-list-item
-                    prepend-avatar="/public/telegram.png"
-                    title="Телеграм "
-                  >
-                    <template v-slot:append>
-                      <v-btn
-                        icon="mdi-chat"
-                        size="x-small"
-                        @click="startTelegramChat"
-                      ></v-btn>
-                    </template>
-                  </v-list-item>
-                </v-list>
-
-                <v-divider></v-divider>
-              </v-card>
-            </v-menu>
-          </v-list-item>
+          <v-btn v-bind="props" @click="startPhoneCall">
+            <v-icon color="cyan" icon="mdi-phone-outline" />
+            {{ osnManager?.ManagerTel }}
+          </v-btn>
         </v-list>
       </v-menu>
 
@@ -94,7 +42,7 @@
       <v-divider></v-divider>
 
       <v-combobox
-        v-if="mng"
+        v-if="mng && props.contragents"
         label="Контрагент"
         clearable
         min-width="350px"
@@ -124,7 +72,10 @@
         </v-btn>
       </NuxtLink>
       <NuxtLink
-        v-if="infotronicManager === true && selectedContragentData?.UNP==='100511773'"
+        v-if="
+          infotronicManager === true &&
+          selectedContragentData?.UNP === '100511773'
+        "
         @click="getOrdersInfotronic()"
         to="/invoicesInfotronic"
         class="ml-3 hidden-sm-and-down"
@@ -134,7 +85,11 @@
           stacked
           v-tooltip="'Список заказов Инфотроник'"
         >
-          <v-badge v-if = "ordersInfotronic" color="primary" :content="ordersInfotronic.length">
+          <v-badge
+            v-if="ordersInfotronic"
+            color="primary"
+            :content="ordersInfotronic.length"
+          >
             <v-icon size="large" icon="mdi mdi-truck-fast"></v-icon>
           </v-badge>
         </v-btn>
@@ -152,11 +107,18 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
-
+      <v-btn v-tooltip="'Долг'" class="ml-3 hidden-sm-and-down">{{
+        contragentBalance
+      }}</v-btn>
       <v-divider></v-divider>
 
       <div class="text-center" v-if="osnManager?.ManagerTel">
-        <v-btn variant="outlined" class="hidden-sm-and-down" @click="startPhoneCall" v-tooltip="osnManager.ManagerCode">
+        <v-btn
+          variant="outlined"
+          class="hidden-sm-and-down"
+          @click="startPhoneCall"
+          v-tooltip="osnManager.ManagerCode"
+        >
           <v-icon color="cyan" icon="mdi-phone-outline" />
           {{ osnManager?.ManagerTel }}
         </v-btn>
@@ -191,15 +153,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-const auth = inject<Ref<boolean>>("auth", ref(false));
-const mng = inject<Ref<boolean>>("mng", ref(false));
-const boss = inject<Ref<boolean>>("boss", ref(false));
-const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
-const osnManager = inject<Ref<Managers>>("osnManager");
-let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
-const ordersInfotronic = inject<orderInfotronic[]>("ordersInfotronic");
-const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
-
 const props = defineProps({
   contragents: {
     type: Array as PropType<Contragents[]>,
@@ -210,23 +163,44 @@ const props = defineProps({
     required: true,
   },
 });
-
+const auth = inject<Ref<boolean>>("auth", ref(false));
+const mng = inject<Ref<boolean>>("mng", ref(false));
+const boss = inject<Ref<boolean>>("boss", ref(false));
+const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
+const balance = inject<Ref<Balance[]>>("balance");
+const osnManager = inject<Ref<Managers>>("osnManager");
+let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
+const ordersInfotronic = inject<Ref<orderInfotronic[]>>("ordersInfotronic");
+const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
+const orders = inject<Orders[]>("orders") || [];
 const route = useRoute();
 const telmenu = ref(false);
 const telmenumob = ref(false);
 const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
-const selectedContragentData = inject<Ref<Contragents>>("selectedContragentData"); 
+const selectedContragentData = inject<Ref<Contragents>>(
+  "selectedContragentData"
+);
 const loginData = inject("loginData");
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
-const orders = inject<Orders[]>("orders") || [];
+const rememberMe = useCookie("rememberMe");
 
+const contragentBalance = computed(() => {
+  if (!selectedContragentData || !balance) return "";
+  const bal = balance?.value.find(
+    (co) => co.UNP === selectedContragentData?.value.UNP
+  );
+  if (bal?.Summa !== undefined)
+    return bal?.Summa + " " + selectedContragentData.value.priceCurrency;
+  else return "";
+});
 const logout = () => {
   // Remove all cookies
   loginCookie.value = null;
   passwordCookie.value = null;
-
+  storedSelectedContragent.value = null;
+  rememberMe.value = null;
   // Reset the auth state
   auth.value = false;
   mng.value = false;
@@ -237,8 +211,10 @@ const logout = () => {
 };
 
 const getOrdersInfotronic = async () => {
-  const ordersInfotronicRaw = await $fetch("/api/getInfotronicOrders");
-  ordersInfotronic.value = ordersInfotronicRaw;
+  if (ordersInfotronic) {
+    const ordersInfotronicRaw = await $fetch("/api/getInfotronicOrders");
+    ordersInfotronic.value = ordersInfotronicRaw;
+  }
 };
 
 const changeFavsOnly = () => {

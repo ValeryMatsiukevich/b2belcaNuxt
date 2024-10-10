@@ -1,3 +1,4 @@
+import fs from "fs/promises";
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
@@ -14,6 +15,18 @@ export default defineEventHandler(async (event) => {
 
     const data = await response.json();
     console.log(JSON.stringify(data));
+    let filePath = "";
+    // Check if file exists
+    if (process.env.NODE_ENV === "development") {
+      filePath = "./public/Orders/" + body.UNP + ".JSON";
+    } else {
+      filePath =
+        "/var/www/www-root/data/www/b2.belca.by/Orders/" + body.UNP + ".JSON";
+    }
+    // Переименовать файл
+    const newFilePath = filePath.replace(body.UNP + ".JSON", body.UNP + ".BAK");
+    fs.rename(filePath, newFilePath);
+
     return data;
   } catch (error) {
     console.log(error);

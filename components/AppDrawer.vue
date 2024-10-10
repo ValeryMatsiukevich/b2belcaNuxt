@@ -9,7 +9,7 @@
           Сбросить</v-btn
         >
       </div>
-      <client-only>
+      
       <v-treeview
         v-model:opened="open"
         v-model:selected="tree"
@@ -25,7 +25,7 @@
           <p class="text-s">{{ item.title as string }}</p>
         </template>
       </v-treeview>
-    </client-only>
+   
     </v-navigation-drawer>
   </div>
 </template>

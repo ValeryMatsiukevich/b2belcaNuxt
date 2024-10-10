@@ -22,15 +22,16 @@
               <v-col
                 v-for="(item, i) in items"
                 :key="i"
-                cols="auto"
-                md="6"
+                cols="12"
+                sm="6"
+                md="4"
                 xs="12"
               >
                 <v-card
                   :color="
                     isInCart(item.raw.NomCode) ? 'cyan-darken-3' : 'default'
                   "
-                  height="25vh"
+                  height="30vh"
                   variant="elevated"
                   class="border-opacity-100"
                   :title="item.raw.NomCode"
@@ -94,7 +95,7 @@
                   <v-card-subtitle>
                     <v-row>
                       <v-col cols="8" class="d-flex align-self-end price-tag">
-                        <v-chip variant="elevated" color="black">
+                        <v-chip  variant="elevated" color="black">
                           {{ item.raw.Price }}
                           {{ selectedContragentData?.priceCurrency }}
                         </v-chip>
@@ -389,6 +390,7 @@ const StopLoading = () => {
 };
 
 const isFav = (nomCode: string) => {
+  if(!favs.value) return false
   const fav = favs.value.find((el: Favs) => el.NomCode === nomCode);
   if (fav) return true;
   else return false;
@@ -560,7 +562,7 @@ const addToCart = (item: any) => {
 .price-tag {
   position: absolute;
   bottom: 5%;
-  width: 50%;
+  width: 60%;
   padding: 5px;
 }
 
