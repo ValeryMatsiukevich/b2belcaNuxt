@@ -1,6 +1,7 @@
 export default defineEventHandler(async (event) => {
+  
   const credentials = await readBody(event);
-
+  console.log('LOGIN API CALLED ',credentials); 
   try {
     const url = `http://base.belca.by/UT/hs/Products/generatePassword/?Login=${credentials.Login}&password=${credentials.Password}`;
     const headers = {
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
     });
 
     const data = await response.json();
-    console.log(JSON.stringify(data));
+    console.log(data);
     return data;
   } catch (error) {
     console.log(error);

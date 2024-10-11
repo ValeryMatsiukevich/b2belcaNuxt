@@ -9,10 +9,11 @@
 </template>
 
 <script setup lang="ts">
-
 const cart = inject<Ref<Goods[]>>("cart") || ref([]);
 
 const getTotalItems = () => {
+  if (cart.value === undefined) return 0;
+
   return cart.value.length;
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div id="start">
-    <AppHeader v-if="goods && contragents" 
+    <AppHeader  
       :contragents="contragents as Contragents[]"
       :goods="goods as Goods[]"
     />

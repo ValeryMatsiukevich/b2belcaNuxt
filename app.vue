@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <VApp>
-      <NuxtLoadingIndicator />
+     <NuxtLoadingIndicator />
       <VMain>
         <NuxtPage />
       </VMain>
@@ -44,13 +44,14 @@ const { data: managers } = await useAsyncData("managers", () =>
 const { data: balance } = await useAsyncData("balance", () =>
   $fetch("/api/readBalance")
 );
-
-const { data: invoices } = await useAsyncData("invoices", () =>
-  $fetch("/api/readInvoices")
-);
+const invoices = ref([]);
+// const { data: invoices } = await useAsyncData("invoices", () =>
+//   $fetch("/api/readInvoices")
+// );
 
 const getGoods = async () => {
-  if (loginData.value) {
+  try {
+    console.log("GET goods");
     const goodsData = await $fetch("/api/goods", {
       method: "POST",
       body: JSON.stringify({
@@ -74,6 +75,8 @@ const getGoods = async () => {
       query: { type: priceType.value },
     });
     goods.value = goodsData;
+  } catch (error) {
+    console.error("Error fetching goods:", error);
   }
 };
 
@@ -115,65 +118,60 @@ const getOrders = async () => {
   orders.value = ordersData;
 };
 const selectContragent = async (newContragent: Contragents) => {
-  if (newContragent) {
-    console.log("selectedContragent changed:", "->", newContragent);
-    selectedContragentData.value = newContragent;
-    if (
-      selectedContragentData.value &&
-      (selectedContragentData.value.Tip === 4 ||
-        selectedContragentData.value.Tip === 6 ||
-        selectedContragentData.value.Gorod === "rf")
-    )
-      selectedContragentData.value.priceCurrency = "RUB";
-    else if (selectedContragentData.value)
-      selectedContragentData.value.priceCurrency = "BYN";
+  console.log("selectedContragent changed:", "->", newContragent);
+  selectedContragentData.value = newContragent;
+  if (
+    selectedContragentData.value &&
+    (selectedContragentData.value.Tip === 4 ||
+      selectedContragentData.value.Tip === 6 ||
+      selectedContragentData.value.Gorod === "rf")
+  )
+    selectedContragentData.value.priceCurrency = "RUB";
+  else if (selectedContragentData.value)
+    selectedContragentData.value.priceCurrency = "BYN";
 
-    //     let priceType = "";
-    if (
-      selectedContragentData.value &&
-      selectedContragentData.value.Tip === 1
-    ) {
-      priceType.value = "000000107";
-    } else if (
-      selectedContragentData.value &&
-      selectedContragentData.value.Tip === 2
-    ) {
-      priceType.value = "000000009";
-    } else if (
-      selectedContragentData.value &&
-      selectedContragentData.value.Tip === 3
-    ) {
-      priceType.value = "000000105";
-    } else if (
-      selectedContragentData.value &&
-      selectedContragentData.value.Tip === 4 &&
-      selectedContragentData.value.Priznak === 2
-    ) {
-      priceType.value = "000000111";
-    } else if (
-      selectedContragentData.value &&
-      selectedContragentData.value.Tip === 5
-    ) {
-      priceType.value = "000000006";
-    }
-
-    if (
-      selectedContragentData.value &&
-      (selectedContragentData.value.Tip === 6 ||
-        (selectedContragentData.value.Tip === 4 &&
-          selectedContragentData.value.Priznak === 3))
-    ) {
-      priceType.value = "000000114";
-    }
-
-    await getGoods();
-    await getFavs();
-    await getOrder();
-    await getOrders();
-    osnManager.value = managers.value.find(
-      (o) => o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
-    );
+  //     let priceType = "";
+  if (selectedContragentData.value && selectedContragentData.value.Tip === 1) {
+    priceType.value = "000000107";
+  } else if (
+    selectedContragentData.value &&
+    selectedContragentData.value.Tip === 2
+  ) {
+    priceType.value = "000000009";
+  } else if (
+    selectedContragentData.value &&
+    selectedContragentData.value.Tip === 3
+  ) {
+    priceType.value = "000000105";
+  } else if (
+    selectedContragentData.value &&
+    selectedContragentData.value.Tip === 4 &&
+    selectedContragentData.value.Priznak === 2
+  ) {
+    priceType.value = "000000111";
+  } else if (
+    selectedContragentData.value &&
+    selectedContragentData.value.Tip === 5
+  ) {
+    priceType.value = "000000006";
   }
+
+  if (
+    selectedContragentData.value &&
+    (selectedContragentData.value.Tip === 6 ||
+      (selectedContragentData.value.Tip === 4 &&
+        selectedContragentData.value.Priznak === 3))
+  ) {
+    priceType.value = "000000114";
+  }
+
+  await getGoods();
+  await getFavs();
+  await getOrder();
+  await getOrders();
+  osnManager.value = managers.value.find(
+    (o) => o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
+  );
 };
 if (loginCookie && passwordCookie) {
   const { data: loginDataraw } = await useAsyncData("login", () =>
@@ -203,6 +201,16 @@ if (loginCookie && passwordCookie) {
       ) {
         console.log("Manager:", loginData.value.Kontragent[0].Manager);
         mng.value = true;
+        if (selectedContragentData.value === undefined) {
+          console.log("selectContragent UNDEFINED");
+          selectedContragent.value = contragents.value.find(
+            (cont: Contragents) => cont.UNP === "101352704"
+          ).Kontragent;
+          let newContragent = contragents.value.find(
+            (cont: Contragents) => cont.UNP === "101352704"
+          );
+          selectContragent(newContragent);
+        }
       }
       const UNP = loginData.value.Kontragent[0].UNP.trim();
       if (UNP === "0000000055" || UNP === "000000100") {
@@ -230,18 +238,18 @@ if (loginCookie && passwordCookie) {
           (contragent: Contragents) =>
             contragent.UNP === loginData.value.Kontragent[0].UNP
         );
-        if (selectedContragentData?.value) {
+        if (selectedContragentData.value !== undefined) {
           selectContragent(selectedContragentData.value);
-          balance.value = balance?.value.filter(
-            (co: Balance) => co.UNP === selectedContragentData?.value.UNP
-          );
-          contragents.value = contragents.value.filter(
-            (contragent: Contragents) =>
-              contragent.UNP === selectedContragentData?.value.UNP
-          );
-          invoices.value = invoices.value.filter(
-            (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
-          );
+          // balance.value = balance?.value.filter(
+          //   (co: Balance) => co.UNP === selectedContragentData?.value.UNP
+          // );
+          // contragents.value = contragents.value.filter(
+          //   (contragent: Contragents) =>
+          //     contragent.UNP === selectedContragentData?.value.UNP
+          // );
+          // invoices.value = invoices.value.filter(
+          //   (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
+          // );
           await getGoods();
           await getFavs();
           await getOrder();

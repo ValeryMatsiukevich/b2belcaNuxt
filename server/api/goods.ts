@@ -141,8 +141,8 @@ export default defineEventHandler(async (event) => {
       });
     });
     if (
-      body.UNP === "000000053" ||
-      body.UNP === "000000054" ||
+      body.UNP === "0000000053" ||
+      body.UNP === "0000000054" ||
       body.UNP === "0000000055" ||
       body.UNP === "100511773"
     ) {
@@ -212,11 +212,12 @@ export default defineEventHandler(async (event) => {
           return element;
         });
       });
+
+      console.log(goods.length);
+      return goods;
     }
-    console.log("Goods fetched:", goods.length);
-    return goods;
   } catch (error) {
     console.error(error);
-    return [];
+    return new Response("Error processing request", { status: 500 });
   }
 });

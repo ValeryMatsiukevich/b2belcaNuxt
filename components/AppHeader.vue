@@ -40,23 +40,23 @@
         </v-avatar>
       </NuxtLink>
       <v-divider></v-divider>
-
-      <v-combobox
-        v-if="mng && props.contragents"
-        label="Контрагент"
-        clearable
-        min-width="350px"
-        density="compact"
-        class="mt-5"
-        :items="props.contragents.map((contragent) => contragent.Kontragent)"
-        v-model="selectedContragent"
-      ></v-combobox>
-
+      <ClientOnly>
+        <v-combobox
+          v-if="mng && props.contragents"
+          label="Контрагент"
+          clearable
+          min-width="350px"
+          density="compact"
+          class="mt-5"
+          :items="[...new Set(props.contragents.map((contragent) => contragent.Kontragent))]"
+          v-model="selectedContragent"
+        ></v-combobox>
+      </ClientOnly>
       <v-divider></v-divider>
 
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down" v-if="goods">
         <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
-          <v-badge color="primary" :content="goods.length">
+          <v-badge v-if= "goods" color="primary" :content="goods.length">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
           </v-badge>
         </v-btn>
@@ -66,7 +66,7 @@
 
       <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down" v-if="orders">
         <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
-          <v-badge color="primary" :content="orders.length">
+          <v-badge v-if="orders" color="primary" :content="orders.length">
             <v-icon size="large" icon="mdi mdi-invoice-list"></v-icon>
           </v-badge>
         </v-btn>
@@ -187,6 +187,7 @@ const passwordCookie = useCookie("passwordCookie");
 const rememberMe = useCookie("rememberMe");
 
 const contragentBalance = computed(() => {
+  if(selectedContragent.value === null || selectedContragentData === undefined) return "";
   if (!selectedContragentData || !balance) return "";
   const bal = balance?.value.find(
     (co) => co.UNP === selectedContragentData?.value.UNP
