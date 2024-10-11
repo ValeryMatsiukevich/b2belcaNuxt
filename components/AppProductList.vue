@@ -35,6 +35,7 @@
                   variant="elevated"
                   class="border-opacity-100"
                   :title="item.raw.NomCode"
+                  :subtitle="item.raw.Articul"
                   rounded="0"
                 >
                   <v-dialog v-model="dialog" max-width="40%">

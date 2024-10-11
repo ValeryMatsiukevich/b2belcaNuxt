@@ -48,7 +48,7 @@
           min-width="350px"
           density="compact"
           class="mt-5"
-          :items="[...new Set(props.contragents.map((contragent) => contragent.Kontragent))]"
+          :items="props.contragents.map((contragent) => contragent.Kontragent)"
           v-model="selectedContragent"
         ></v-combobox>
       </ClientOnly>
@@ -56,7 +56,7 @@
 
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down" v-if="goods">
         <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
-          <v-badge v-if= "goods" color="primary" :content="goods.length">
+          <v-badge v-if="goods" color="primary" :content="goods.length">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
           </v-badge>
         </v-btn>
@@ -72,10 +72,7 @@
         </v-btn>
       </NuxtLink>
       <NuxtLink
-        v-if="
-          infotronicManager === true &&
-          selectedContragentData?.UNP === '100511773'
-        "
+        v-if="infotronicManager === true"
         @click="getOrdersInfotronic()"
         to="/invoicesInfotronic"
         class="ml-3 hidden-sm-and-down"
@@ -108,7 +105,7 @@
         </v-btn>
       </NuxtLink>
       <v-btn v-tooltip="'Долг'" class="ml-3 hidden-sm-and-down">{{
-        contragentBalance
+        contragentBalance()
       }}</v-btn>
       <v-divider></v-divider>
 
@@ -186,16 +183,21 @@ const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 const rememberMe = useCookie("rememberMe");
 
-const contragentBalance = computed(() => {
-  if(selectedContragent.value === null || selectedContragentData === undefined) return "";
-  if (!selectedContragentData || !balance) return "";
+const contragentBalance = () => {
+  if (
+    !selectedContragent ||
+    selectedContragent.value === null ||
+    selectedContragentData === undefined
+  )
+    return "";
+  if (selectedContragentData.value === undefined || !balance) return "";
   const bal = balance?.value.find(
     (co) => co.UNP === selectedContragentData?.value.UNP
   );
   if (bal?.Summa !== undefined)
     return bal?.Summa + " " + selectedContragentData.value.priceCurrency;
   else return "";
-});
+};
 const logout = () => {
   // Remove all cookies
   loginCookie.value = null;
@@ -206,6 +208,7 @@ const logout = () => {
   auth.value = false;
   mng.value = false;
   boss.value = false;
+
   // Reset the selected contragent cookie
   // storedSelectedContragent.value = "";
   if (!auth.value && route.path !== "/login") navigateTo("/login");

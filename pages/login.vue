@@ -168,8 +168,8 @@ const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
 const loginData =
   inject<Ref<LoginResponse>>("loginData") || ref<LoginResponse>();
-const login = ref("");
-const password = ref("");
+const login = inject("login");
+const password = inject("password");
 const infotronicManager = inject<Ref<boolean>>("infotronicManager");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");

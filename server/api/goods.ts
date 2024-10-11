@@ -43,6 +43,7 @@ class GoodsImpl implements Goods {
   }
 }
 export default defineEventHandler(async (event) => {
+  console.log("GOODS API CALLED");
   try {
     const body = await readBody(event);
     if (!body) {
@@ -54,6 +55,7 @@ export default defineEventHandler(async (event) => {
     const data2 = await fs.readFile("./public/ost8skl.json", "utf-8");
 
     let goods = JSON.parse(data) as Goods[];
+    //console.log(goods);
     const prices = JSON.parse(data1);
     const ostatki = JSON.parse(data2);
     let kursyRaw = [];
@@ -68,7 +70,7 @@ export default defineEventHandler(async (event) => {
       };
 
       const response = await axios.request(config);
-      //   console.log(JSON.stringify(response.data));
+     // console.log(JSON.stringify(response.data));
       kursyRaw = response.data;
     } catch (error) {
       console.log(error);
@@ -98,7 +100,7 @@ export default defineEventHandler(async (event) => {
     });
 
     if (body.spec) {
-      //  console.log(body.spec);
+      // console.log(body.spec);
       let pricesSpec = prices.filter(
         (el: { TipCenCode: string }) => el.TipCenCode === body.spec
       );
@@ -212,10 +214,9 @@ export default defineEventHandler(async (event) => {
           return element;
         });
       });
-
-      console.log(goods.length);
-      return goods;
     }
+    console.log(goods.length);
+    return goods;
   } catch (error) {
     console.error(error);
     return new Response("Error processing request", { status: 500 });

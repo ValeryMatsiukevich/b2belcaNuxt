@@ -1,6 +1,6 @@
 <template>
   <div id="start">
-    <AppHeader  
+    <AppHeader 
       :contragents="contragents as Contragents[]"
       :goods="goods as Goods[]"
     />
