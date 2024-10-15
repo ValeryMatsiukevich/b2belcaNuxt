@@ -1,23 +1,20 @@
-import axios from "axios";
-
 export default defineEventHandler(async (event) => {
   const credentials = await readBody(event);
 
   try {
-    //console.log(credentials.Login, credentials.Password);
-
-    let config = {
-      method: "get",
-      maxBodyLength: Infinity,
-      url: `http://base.belca.by/UT/hs/Products/loadStatus/?UNP=${credentials.unp}`,
+    const response = await fetch(`http://base.belca.by/UT/hs/Products/loadStatus/?UNP=${credentials.unp}`, {
+      method: "GET",
       headers: {
         Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
       },
-    };
+    });
 
-    const response = await axios.request(config);
-    // console.log(JSON.stringify(response.data));
-    return response.data;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.log(error);
     return [];

@@ -157,7 +157,8 @@ const props = defineProps({
   },
   goods: {
     type: Array as PropType<Goods[]>,
-    required: true,
+    required: false,
+    default: () => [],
   },
 });
 const auth = inject<Ref<boolean>>("auth", ref(false));

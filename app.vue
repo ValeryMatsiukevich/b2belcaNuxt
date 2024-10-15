@@ -40,16 +40,16 @@ const { data: folders } = await useAsyncData("folders", () =>
   $fetch("/api/folders")
 );
 
-const { data: managers } = await useAsyncData("managers", () =>
+const { data: managers } = await useLazyAsyncData("managers", () =>
   $fetch("/api/managers")
 );
-const { data: balance } = await useAsyncData("balance", () =>
+const { data: balance } = await useLazyAsyncData("balance", () =>
   $fetch("/api/readBalance")
 );
-const invoices = ref([]);
-// const { data: invoices } = await useAsyncData("invoices", () =>
-//   $fetch("/api/readInvoices")
-// );
+//const invoices = ref([]);
+ const { data: invoices } = await useLazyAsyncData("invoices", () =>
+   $fetch("/api/readInvoices")
+ );
 
 const getGoods = async () => {
   try {
@@ -259,16 +259,16 @@ const loginProcedures = async () => {
           );
           if (selectedContragentData.value !== undefined) {
             selectContragent(selectedContragentData.value);
-            // balance.value = balance?.value.filter(
-            //   (co: Balance) => co.UNP === selectedContragentData?.value.UNP
-            // );
-            // contragents.value = contragents.value.filter(
-            //   (contragent: Contragents) =>
-            //     contragent.UNP === selectedContragentData?.value.UNP
-            // );
-            // invoices.value = invoices.value.filter(
-            //   (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
-            // );
+             balance.value = balance?.value.filter(
+               (co: Balance) => co.UNP === selectedContragentData?.value.UNP
+             );
+             contragents.value = contragents.value.filter(
+               (contragent: Contragents) =>
+                 contragent.UNP === selectedContragentData?.value.UNP
+             );
+             invoices.value = invoices.value.filter(
+               (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
+             );
             await getGoods();
             await getFavs();
             await getOrder();

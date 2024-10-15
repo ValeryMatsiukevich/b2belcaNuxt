@@ -1,6 +1,6 @@
 import { defineEventHandler } from "h3";
 import fs from "fs/promises";
-import axios from "axios";
+
 
 class GoodsImpl implements Goods {
   NomCode: string;
@@ -60,18 +60,16 @@ export default defineEventHandler(async (event) => {
     const ostatki = JSON.parse(data2);
     let kursyRaw = [];
     try {
-      let config = {
-        method: "get",
-        maxBodyLength: Infinity,
-        url: `http://base.belca.by/UT/hs/Products/Kursy/`,
+      const response = await fetch("http://base.belca.by/UT/hs/Products/Kursy/", {
+        method: "GET",
         headers: {
           Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
         },
-      };
-
-      const response = await axios.request(config);
-     // console.log(JSON.stringify(response.data));
-      kursyRaw = response.data;
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      kursyRaw = await response.json();
     } catch (error) {
       console.log(error);
       kursyRaw = [];
@@ -143,22 +141,20 @@ export default defineEventHandler(async (event) => {
       });
     });
     if (
-      body.UNP === "0000000053" ||
-      body.UNP === "0000000054" ||
+      body.UNP === "000000053" ||
+      body.UNP === "000000054" ||
       body.UNP === "0000000055" ||
       body.UNP === "100511773"
     ) {
       console.log("ADD infotronic articles");
       const [data3, data4] = await Promise.all([
-        axios.get("https://www.infotronic.by/api/public/Nom_Ost.json"),
-        axios.get(
-          "https://www.infotronic.by/api/public/Nom_OST_PapkaInf.json",
-          {
-            responseType: "text",
-          }
-        ),
+        fetch("https://www.infotronic.by/api/public/Nom_Ost.json"),
+        fetch("https://www.infotronic.by/api/public/Nom_OST_PapkaInf.json", {
+          responseType: "text",
+        }),
       ]);
-      const response = await axios.get(
+
+      const response = await fetch(
         "https://www.infotronic.by/assets/php/get1Ccatalog.php",
         {
           headers: {
@@ -166,9 +162,10 @@ export default defineEventHandler(async (event) => {
           },
         }
       );
-      let infotronic1c = response.data.value;
-      let nomOst = data3.data;
-      let nomOstInf = data4.data;
+
+      let infotronic1c = (await response.json())?.value;
+      let nomOst = await data3.json();
+      let nomOstInf = await data4.json();
       let combinedNomOst = nomOst.concat(nomOstInf);
 
       combinedNomOst.forEach((item: Nom_Ost) => {
