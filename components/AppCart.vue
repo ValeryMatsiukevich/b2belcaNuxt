@@ -16,4 +16,9 @@ const getTotalItems = () => {
 
   return cart.value.length;
 };
+onUnmounted(() => {
+  
+  cart.value = [];
+  
+});
 </script>

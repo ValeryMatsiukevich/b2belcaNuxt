@@ -25,7 +25,13 @@ export default defineNuxtConfig({
   // },
 
   ssr: true,
-  devtools: { enabled: true },
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true,
+    },
+  },
 
   nitro: {
     prerender: {
@@ -43,27 +49,7 @@ export default defineNuxtConfig({
 
   modules: [
     
-    [
-      "nuxt-mail",
-      
-      {
-        message: {
-          to: "valery@infotronic.by",
-          cc: "valery@infotronic.by",
-        },
-        smtp: {
-          host: "smtp.mail.ru",
-          port: 465,
-          secure: true, // true for 465, false for other ports
-          auth: {
-            user: "order@belca.by",
-            pass: "fdtwvd41j3uxM6mAs1ib",
-          },
-        },
-      },
-      
-    ],
-    
+        
     
     (_options, nuxt) => {
       nuxt.hooks.hook("vite:extendConfig", (config) => {
@@ -80,7 +66,9 @@ export default defineNuxtConfig({
     "@nuxtjs/robots",
     // 'vue-yandex-maps/nuxt',
     '@nuxt/scripts',
-    'nuxt-scheduler'
+    'nuxt-scheduler',
+    'dayjs-nuxt'
+    
   ],
   //  yandexMaps: {
   //    apikey: 'e724701e-8b3c-4092-be9d-daabb8272ee6',

@@ -18,6 +18,10 @@ function startScheduler() {
     .run(() => {
       getOst8skl1C();
       getPrices();
+     
+      console.log("GC");
+       global?.gc?.();
+      
     })
     .everyHours(1);
   scheduler

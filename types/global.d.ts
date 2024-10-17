@@ -131,6 +131,16 @@ declare global {
     SummaNal: number;
     UNP: string;
   }
+
+  interface Invoices {
+    Date: Date;
+    DneyOtsrochki: number;
+    NUM:string;
+    Summa: number;
+    SummaUSD: number;
+    UNP: string;
+    Valuta: string;
+  }
 }
 
 

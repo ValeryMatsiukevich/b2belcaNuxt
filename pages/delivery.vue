@@ -1,5 +1,5 @@
 <template>
-  <AppHeader :goods="goods" :folders="folders" />   
+ 
   <div class="d-flex justify-center mb-6 bg-cyan text-white mt-5">
     <h1>Оплата и доставка</h1>
   </div>
@@ -158,13 +158,6 @@
 </template>
 <script lang="ts" setup>
 
-  const route = useRoute();
-  const { data : goods } = await useAsyncData(
-  'goods',
-  () => $fetch('/api/goods')
-)
-const { data : folders} = await useAsyncData(
-  'folders',
-  () => $fetch('/api/folders')
-)
+ 
+  
 </script>

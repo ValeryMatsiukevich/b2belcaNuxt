@@ -343,9 +343,7 @@ import { inject, computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { shallowRef } from "vue";
 const cart = inject<Ref<Goods[]>>("cart");
-const infotronicManager = inject<Ref<boolean>>("infotronicManager");
 const dialog = ref(false);
-const hover = ref(false);
 const currentImage = ref("");
 const route = useRoute();
 const tree = inject<Ref<string[]>>("tree", ref([])); // Initialize tree with an empty array
@@ -529,7 +527,7 @@ const isInCart = (NomCode: string) => {
 };
 // Function to sync cart with goods
 const syncCartWithGoods = () => {
-  if (cart && props.goods) {
+  if (cart &&cart.value && props.goods) {
     cart.value.forEach((cartItem: any) => {
       const goodIndex = props.goods.findIndex(
         (good: Goods) => good.NomCode === cartItem.NomCode

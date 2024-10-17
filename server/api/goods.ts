@@ -1,6 +1,6 @@
 import { defineEventHandler } from "h3";
 import fs from "fs/promises";
-
+import axios from "axios";
 
 class GoodsImpl implements Goods {
   NomCode: string;
@@ -44,178 +44,208 @@ class GoodsImpl implements Goods {
 }
 export default defineEventHandler(async (event) => {
   console.log("GOODS API CALLED");
+
+  const body = await readBody(event);
+  if (!body) {
+    return new Response("Missing 'body' parameter", { status: 400 });
+  }
+  let prices: any[]  = [];
   try {
-    const body = await readBody(event);
-    if (!body) {
-      return new Response("Missing 'body' parameter", { status: 400 });
-    }
-
     const data1 = await fs.readFile("./public/ost_tip_cen.json", "utf-8");
+    prices = JSON.parse(data1);
+  } catch (error) {
+    console.error("Error parsing ost_tip_cen:", error);
+    // Handle the error or return a default value
+  }
+  let goods = [] as Goods[];
+  try {
     const data = await fs.readFile("./public/nom1c8b2b.json", "utf-8");
+    goods = JSON.parse(data) as Goods[];
+  } catch (error) {
+    console.error("Error parsing ost_tip_cen:", error);
+    // Handle the error or return a default value
+  }
+  let ostatki: any[]  = [];
+  try {
     const data2 = await fs.readFile("./public/ost8skl.json", "utf-8");
+    ostatki = JSON.parse(data2);
+  } catch (error) {
+    console.error("Error parsing ost8skl.json:", error);
+    // Handle the error or return a default value
+  }
 
-    let goods = JSON.parse(data) as Goods[];
-    //console.log(goods);
-    const prices = JSON.parse(data1);
-    const ostatki = JSON.parse(data2);
-    let kursyRaw = [];
-    try {
-      const response = await fetch("http://base.belca.by/UT/hs/Products/Kursy/", {
-        method: "GET",
+  //console.log(goods);
+
+  let kursyRaw: any[] | null = [];
+  try {
+    const response = await axios.get(
+      "http://base.belca.by/UT/hs/Products/Kursy/",
+      {
         headers: {
           Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
         },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      kursyRaw = await response.json();
-    } catch (error) {
-      console.log(error);
-      kursyRaw = [];
-    }
+    );
+    kursyRaw = response.data;
+    response.data = [];
+  } catch (error) {
+    console.log(error);
+    kursyRaw = [];
+  }
 
-    //let kursy = JSON.parse(kursyRaw);
+  //let kursy = JSON.parse(kursyRaw);
+  const goodsMap = new WeakMap();
 
-    let pricesMain = prices.filter(
+  goods.forEach((element: Goods) => {
+    goodsMap.set(element, element);
+  });
+  let pricesMain:Prices[]  = [];
+  if (prices) {
+    pricesMain = prices.filter(
       (el: { TipCenCode: string }) => el.TipCenCode === body.type
     );
+  }
+  goods = goods.filter((el: { IsGropup: string }) => el.IsGropup === "Нет");
 
-    goods = goods.filter((el: { IsGropup: string }) => el.IsGropup === "Нет");
+  goods = goods.map((element: Goods) => {
+    const price = pricesMain.find(
+      (el: { NomCode: string }) => el.NomCode === element.NomCode
+    );
 
+    if (price) {
+      element.Price = price.Cena;
+    } else {
+      element.Price = "0";
+    }
+
+    return element;
+  });
+
+  if (body.spec && prices) {
+    // console.log(body.spec);
+    let pricesSpec = prices.filter(
+      (el:Prices) => el.TipCenCode === body.spec
+    );
     goods = goods.map((element: Goods) => {
-      const price = pricesMain.find(
-        (el: { NomCode: string }) => el.NomCode === element.NomCode
+      const price = pricesSpec.find(
+        (el: Prices) => el.NomCode === element.NomCode
       );
 
-      if (price) {
-        element.Price = price.Cena;
-      } else {
-        element.Price = "0";
+      if (price && kursyRaw) {
+        let kurs = kursyRaw.find((el: Kursy) => el.Valuta === price.ValutaCode);
+
+        if (kurs.Kratnost !== 0) {
+          element.Price = (
+            Math.round(
+              ((price.Cena.replace(",", ".") * kurs.Kurs) / kurs.Kratnost) * 100
+            ) / 100
+          ).toString();
+        } else {
+          element.Price = "0"; // or any other default value
+        }
+        // console.log("price.Cena:", element.Price);
+        //  console.log("kurs.Kurs:", kurs.Kurs);
+        //  console.log("kurs.Kratnost:", kurs.Kratnost);
       }
 
       return element;
     });
-
-    if (body.spec) {
-      // console.log(body.spec);
-      let pricesSpec = prices.filter(
-        (el: { TipCenCode: string }) => el.TipCenCode === body.spec
-      );
-      goods = goods.map((element: Goods) => {
-        const price = pricesSpec.find(
-          (el: { NomCode: string }) => el.NomCode === element.NomCode
-        );
-
-        if (price) {
-          let kurs = kursyRaw.find(
-            (el: Kursy) => el.Valuta === price.ValutaCode
-          );
-
-          if (kurs.Kratnost !== 0) {
-            element.Price = (
-              Math.round(
-                ((price.Cena.replace(",", ".") * kurs.Kurs) / kurs.Kratnost) *
-                  100
-              ) / 100
-            ).toString();
-          } else {
-            element.Price = "0"; // or any other default value
-          }
-          // console.log("price.Cena:", element.Price);
-          //  console.log("kurs.Kurs:", kurs.Kurs);
-          //  console.log("kurs.Kratnost:", kurs.Kratnost);
-        }
-
-        return element;
-      });
-    }
-
+  }
+  if (ostatki) {
     ostatki.forEach((ostatok: Ostatki) => {
-      goods = goods.map((element: Goods) => {
+      goods.forEach((element: Goods) => {
         if (element.NomCode === ostatok.NomCode) {
-          element[`Skl${ostatok.Sklad}`] = ostatok.quantity;
-          element[`Res${ostatok.Sklad}`] = ostatok.Rezerv;
+          const existingElement = goodsMap.get(element);
+          if (existingElement) {
+            existingElement[`Skl${ostatok.Sklad}`] = ostatok.quantity;
+            existingElement[`Res${ostatok.Sklad}`] = ostatok.Rezerv;
+          }
+        }
+      });
+    });
+  }
+  if (
+    body.UNP === "000000053" ||
+    body.UNP === "000000054" ||
+    body.UNP === "0000000055" ||
+    body.UNP === "100511773"
+  ) {
+    console.log("ADD infotronic articles");
+    const [data3, data4] = await Promise.all([
+      axios.get("https://www.infotronic.by/api/public/Nom_Ost.json"),
+      axios.get("https://www.infotronic.by/api/public/Nom_OST_PapkaInf.json"),
+    ]);
+
+    const response = await axios.get(
+      "https://www.infotronic.by/assets/php/get1Ccatalog.php",
+      {
+        headers: {
+          Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
+        },
+      }
+    );
+
+    let infotronic1c = response.data?.value;
+    response.data = [];
+    let nomOst = data3.data;
+    data3.data = [];
+    let nomOstInf = data4.data;
+    data4.data = [];
+    let combinedNomOst = nomOst.concat(nomOstInf);
+    nomOstInf = [];
+    nomOst = [];
+
+    combinedNomOst.forEach((item: Nom_Ost) => {
+      const existingItem = goods.find((el: Goods) => el.NomCode === item.Code);
+
+      if (!existingItem) {
+        const newItem = new GoodsImpl();
+        newItem.NomCode = item.Code;
+        newItem.Articul = item.Articul;
+        newItem.NomNaim = item.Naim;
+        newItem.RoditelCode = item.RoditelCode;
+        newItem.IsGropup = item.isGroup;
+        newItem.Quantity = Number(item.Quantity);
+        newItem.inCart = 0;
+        newItem.slug = "";
+        newItem.Akcionniy = "";
+        newItem.Vigr7712 = "";
+        newItem.ZapretProdazhiNARD = "";
+        newItem.Price = "0";
+        goods.push(newItem);
+      }
+    });
+
+    goods = goods.map((element: Goods) => {
+      const articul = combinedNomOst.find(
+        (el: { Code: string }) => el.Code === element.NomCode
+      );
+
+      if (articul) {
+        element.Articul = articul.Articul;
+      }
+
+      return element;
+    });
+    combinedNomOst = [];
+
+    infotronic1c.forEach((info: infotronic1c) => {
+      goods = goods.map((element: Goods) => {
+        if (element.Articul === info.Артикул) {
+          element.Ref_Key = info.Ref_Key;
         }
         return element;
       });
     });
-    if (
-      body.UNP === "000000053" ||
-      body.UNP === "000000054" ||
-      body.UNP === "0000000055" ||
-      body.UNP === "100511773"
-    ) {
-      console.log("ADD infotronic articles");
-      const [data3, data4] = await Promise.all([
-        fetch("https://www.infotronic.by/api/public/Nom_Ost.json"),
-        fetch("https://www.infotronic.by/api/public/Nom_OST_PapkaInf.json", {
-          responseType: "text",
-        }),
-      ]);
-
-      const response = await fetch(
-        "https://www.infotronic.by/assets/php/get1Ccatalog.php",
-        {
-          headers: {
-            Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
-          },
-        }
-      );
-
-      let infotronic1c = (await response.json())?.value;
-      let nomOst = await data3.json();
-      let nomOstInf = await data4.json();
-      let combinedNomOst = nomOst.concat(nomOstInf);
-
-      combinedNomOst.forEach((item: Nom_Ost) => {
-        const existingItem = goods.find(
-          (el: Goods) => el.NomCode === item.Code
-        );
-
-        if (!existingItem) {
-          const newItem = new GoodsImpl();
-          newItem.NomCode = item.Code;
-          newItem.Articul = item.Articul;
-          newItem.NomNaim = item.Naim;
-          newItem.RoditelCode = item.RoditelCode;
-          newItem.IsGropup = item.isGroup;
-          newItem.Quantity = Number(item.Quantity);
-          newItem.inCart = 0;
-          newItem.slug = "";
-          newItem.Akcionniy = "";
-          newItem.Vigr7712 = "";
-          newItem.ZapretProdazhiNARD = "";
-          newItem.Price = "0";
-          goods.push(newItem);
-        }
-      });
-
-      goods = goods.map((element: Goods) => {
-        const articul = combinedNomOst.find(
-          (el: { Code: string }) => el.Code === element.NomCode
-        );
-
-        if (articul) {
-          element.Articul = articul.Articul;
-        }
-
-        return element;
-      });
-
-      infotronic1c.forEach((info: infotronic1c) => {
-        goods = goods.map((element: Goods) => {
-          if (element.Articul === info.Артикул) {
-            element.Ref_Key = info.Ref_Key;
-          }
-          return element;
-        });
-      });
-    }
-    console.log(goods.length);
-    return goods;
-  } catch (error) {
-    console.error(error);
-    return new Response("Error processing request", { status: 500 });
+    infotronic1c = [];
+    nomOst = [];
+    nomOstInf = [];
+    combinedNomOst = [];
   }
+  console.log(goods.length);
+
+  prices.splice(0);
+  ostatki.splice(0);
+  pricesMain.splice(0);
+  return goods;
 });

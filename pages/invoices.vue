@@ -1,9 +1,6 @@
 <template>
   <div id="invoices" v-if="auth">
-    <AppHeader
-      :contragents="contragents as Contragents[]"
-      :goods="goods as Goods[]"
-    />
+    
     <template v-if="orders?.length>0">
       <v-card>
         <v-table height="500" fixed-header hover>
@@ -117,14 +114,13 @@
 </template>
 
 <script lang="ts" setup>
-const goods = inject<Goods[]>("goods");
-const contragents = inject<Contragents[]>("contragents");
+
 const auth = inject<Ref<boolean>>("auth", ref(false));
 // if (!auth) navigateTo("/");
 // const mng = inject<Ref<boolean>>("mng", ref(false));
 // const boss = inject<Ref<boolean>>("boss", ref(false));
 // const selectedContragentData = inject<Contragents>("selectedContragentData");
-const orders = inject<Orders[]>("orders");
+  const orders = inject<Orders[]>("orders", []);
 const order = ref<Order>({
   Comment: "",
   SummaDokumenta: "",
@@ -150,6 +146,8 @@ const getOrder = async (orderNumber: string, orderDate: string) => {
   selectedOrderNumber.value = orderNumber;
   selectedOrderDate.value = orderDate;
 };
+
+
 </script>
 
 <style></style>

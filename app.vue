@@ -3,6 +3,7 @@
     <VApp>
       <NuxtLoadingIndicator />
       <VMain>
+        <AppHeader :contragents="contragents as Contragents[]" :goodsLength="goodsLength as number"  />
         <NuxtPage />
       </VMain>
     </VApp>
@@ -20,7 +21,7 @@ const search = ref("");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 const infotronicManager = ref(false);
-let priceType = ref("");
+let priceType = "";
 const tree = ref([]);
 const orders = ref([]);
 const ordersInfotronic = ref<orderInfotronic[]>([]);
@@ -31,10 +32,8 @@ const selectedContragent = ref("");
 const selectedContragentData = ref<Contragents>();
 const login = ref("");
 const password = ref("");
-const loginData = ref<LoginResponse>();
-const { data: contragents } = await useAsyncData("contragents", () =>
-  $fetch("/api/contragents")
-);
+let loginData = <LoginResponse>{};
+let contragents = await $fetch("/api/contragents");
 
 const { data: folders } = await useAsyncData("folders", () =>
   $fetch("/api/folders")
@@ -47,35 +46,35 @@ const { data: balance } = await useLazyAsyncData("balance", () =>
   $fetch("/api/readBalance")
 );
 //const invoices = ref([]);
- const { data: invoices } = await useLazyAsyncData("invoices", () =>
-   $fetch("/api/readInvoices")
- );
+const { data: invoices } = await useLazyAsyncData("invoices", () =>
+  $fetch("/api/readInvoices")
+);
 
 const getGoods = async () => {
   try {
     goods.value = [];
     console.log("GET goods");
-    const goodsData = await $fetch("/api/goods", {
+    const goodsData: Goods[] = await $fetch("/api/goods", {
       method: "POST",
       body: JSON.stringify({
-        type: priceType.value,
+        type: priceType,
         spec: selectedContragentData.value?.KodTipSpecCen,
-        UNP: loginData.value.Kontragent[0].UNP,
+        UNP: loginData.Kontragent[0].UNP,
       }),
       headers: {
         "Content-Type": "application/json",
       },
       onRequest({ request, options }) {
-        console.log("REQUEST ", priceType.value);
+        console.log("REQUEST ", priceType);
         console.log(
           "REQUEST BODY ",
           JSON.stringify({
-            type: priceType.value,
+            type: priceType,
             spec: selectedContragentData.value?.KodTipSpecCen,
           })
         );
       },
-      query: { type: priceType.value },
+      query: { type: priceType },
     });
     goods.value = goodsData;
   } catch (error) {
@@ -121,6 +120,7 @@ const getOrders = async () => {
   orders.value = ordersData;
 };
 const selectContragent = async (newContragent: Contragents) => {
+  if(newContragent === undefined) return;
   console.log("selectedContragent changed:", "->", newContragent);
   selectedContragentData.value = newContragent;
   if (
@@ -133,30 +133,29 @@ const selectContragent = async (newContragent: Contragents) => {
   else if (selectedContragentData.value)
     selectedContragentData.value.priceCurrency = "BYN";
 
-  //     let priceType = "";
   if (selectedContragentData.value && selectedContragentData.value.Tip === 1) {
-    priceType.value = "000000107";
+    priceType = "000000107";
   } else if (
     selectedContragentData.value &&
     selectedContragentData.value.Tip === 2
   ) {
-    priceType.value = "000000009";
+    priceType = "000000009";
   } else if (
     selectedContragentData.value &&
     selectedContragentData.value.Tip === 3
   ) {
-    priceType.value = "000000105";
+    priceType = "000000105";
   } else if (
     selectedContragentData.value &&
     selectedContragentData.value.Tip === 4 &&
     selectedContragentData.value.Priznak === 2
   ) {
-    priceType.value = "000000111";
+    priceType = "000000111";
   } else if (
     selectedContragentData.value &&
     selectedContragentData.value.Tip === 5
   ) {
-    priceType.value = "000000006";
+    priceType = "000000006";
   }
 
   if (
@@ -165,149 +164,143 @@ const selectContragent = async (newContragent: Contragents) => {
       (selectedContragentData.value.Tip === 4 &&
         selectedContragentData.value.Priznak === 3))
   ) {
-    priceType.value = "000000114";
+    priceType = "000000114";
   }
-
-  await getGoods();
-  await getFavs();
-  await getOrder();
-  await getOrders();
+  goods.value = [];
+  console.log("GET goods from SelectContragent");
+  getGoods();
+  favs.value = [];
+  getFavs();
+  getOrder();
+  orders.value = [];
+  getOrders();
   osnManager.value = managers.value.find(
-    (o) => o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
+    (o: Managers) => o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
   );
 };
 const loginProcedures = async () => {
   console.log("loginProcedures");
   //if ((loginCookie.value!=='' || login) && (passwordCookie.value!=='' || password)) {
-    const loginD = ref("");
-    const passwordD = ref("");
+  let loginD = "";
+  let passwordD = "";
 
-    if (login.value !== "") {
-      loginD.value = login.value;
-    } else {
-      loginD.value = loginCookie.value;
-    }
-    if (password.value !== "") {
-      passwordD.value = password.value;
-    } else {
-      passwordD.value = passwordCookie.value;
-    }
+  loginD = login.value || loginCookie.value || '';
+  passwordD = password.value || passwordCookie.value || '';
+  
 
-    const { data: loginDataraw } = await useAsyncData("login", () =>
-      $fetch("/api/login", {
-        method: "POST",
-        body: JSON.stringify({
-          Login: loginD.value,
-          Password: passwordD.value,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
-    loginData.value = loginDataraw.value;
-    console.log(loginData.value);
+  const { data: loginDataraw } = await useAsyncData("login", () =>
+    $fetch("/api/login", {
+      method: "POST",
+      body: JSON.stringify({
+        Login: loginD,
+        Password: passwordD,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+  );
+  loginData = loginDataraw.value;
+  console.log(loginData);
 
-    if (loginData.value) {
-      if (loginData.value.Ответ === "Successful !") {
-        auth.value = true;
-        console.log("Auth:", auth.value);
-        if (
-          loginData.value &&
-          loginData.value.Kontragent &&
-          loginData.value.Kontragent[0] &&
-          loginData.value.Kontragent[0].Manager
-        ) {
-          console.log("Manager:", loginData.value.Kontragent[0].Manager);
-          mng.value = true;
-          // if (selectedContragentData.value === undefined) {
-          //   console.log("selectContragent UNDEFINED");
-          //   selectedContragent.value = contragents.value.find(
-          //     (cont: Contragents) => cont.UNP === "101352704"
-          //   ).Kontragent;
-          //   let newContragent = contragents.value.find(
-          //     (cont: Contragents) => cont.UNP === "101352704"
-          //   );
-          //   selectContragent(newContragent);
-          // }
-        }
-        const UNP = loginData.value.Kontragent[0].UNP.trim();
-        if (UNP === "0000000055" || UNP === "000000100") {
-          boss.value = true;
-        }
+  if (loginData) {
+    if (loginData.Ответ === "Successful !") {
+      auth.value = true;
+      console.log("Auth:", auth.value);
+      if (
+        loginData &&
+        loginData.Kontragent &&
+        loginData.Kontragent[0] &&
+        loginData.Kontragent[0].Manager
+      ) {
+        console.log("Manager:", loginData.Kontragent[0].Manager);
+        mng.value = true;
+        
+      }
+      const UNP = loginData.Kontragent[0].UNP.trim();
+      if (UNP === "0000000055" || UNP === "000000100") {
+        boss.value = true;
+      }
 
-        if (
-          UNP === "000000053" ||
-          UNP === "000000054" ||
-          UNP === "0000000055" ||
-          UNP === "100511773"
-        ) {
-          infotronicManager.value = true;
-          mng.value = true;
-        }
+      if (
+        UNP === "000000053" ||
+        UNP === "000000054" ||
+        UNP === "0000000055" ||
+        UNP === "100511773"
+      ) {
+        infotronicManager.value = true;
+        mng.value = true;
+      }
 
-        if (
-          loginData &&
-          loginData.value !== undefined &&
-          loginData.value.Kontragent[0].Manager === false
-        ) {
-          console.log("Enduser");
-          selectedContragent.value = loginData.value.Kontragent[0].Kontragent;
-          selectedContragentData.value = contragents.value.find(
-            (contragent: Contragents) =>
-              contragent.UNP === loginData.value.Kontragent[0].UNP
+      if (
+        loginData &&
+        loginData !== undefined &&
+        loginData.Kontragent[0]?.Manager === false
+      ) {
+        console.log("Enduser");
+        selectedContragent.value = loginData.Kontragent[0]?.Kontragent;
+        selectedContragentData.value = contragents.find(
+          (contragent: Contragents) =>
+            contragent.UNP === loginData?.Kontragent[0].UNP
+        );
+        if (selectedContragentData.value !== undefined) {
+          selectContragent(selectedContragentData.value);
+          balance.value = balance?.value.filter(
+            (co: Balance) => co.UNP === selectedContragentData.value?.UNP
           );
-          if (selectedContragentData.value !== undefined) {
-            selectContragent(selectedContragentData.value);
-             balance.value = balance?.value.filter(
-               (co: Balance) => co.UNP === selectedContragentData?.value.UNP
-             );
-             contragents.value = contragents.value.filter(
-               (contragent: Contragents) =>
-                 contragent.UNP === selectedContragentData?.value.UNP
-             );
-             invoices.value = invoices.value.filter(
-               (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
-             );
-            await getGoods();
-            await getFavs();
-            await getOrder();
-            await getOrders();
-            osnManager.value = managers.value.find(
-              (o: Managers) =>
-                o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
-            );
-            managers.value = [];
-          }
+          contragents = contragents.filter(
+            (contragent: Contragents) =>
+              contragent.UNP === selectedContragentData.value?.UNP
+          );
+          invoices.value = invoices.value.filter(
+            (inv: Invoices) => inv.UNP === selectedContragentData.value?.UNP
+          );
+          console.log("GET goods from LoginProcedures");
+          getGoods();
+          getFavs();
+          getOrder();
+          getOrders();
+          osnManager.value = managers.value.find(
+            (o: Managers) =>
+              o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
+          );
+          managers.value = [];
         }
       }
     }
+  }
   //} else navigateTo("/login");
 };
-watch(selectedContragent, async (newValue, oldValue) => {
-  console.log("watch selectedContragent", newValue, oldValue);
-  let newContragent = contragents.value.find(
-    (cont: Contragents) => cont.Kontragent === newValue
-  );
-  selectContragent(newContragent);
+watch(
+  selectedContragent,
+  async (newValue, oldValue) => {
+    console.log("watch selectedContragent", newValue, oldValue);
+    let newContragent = contragents.find(
+      (cont: Contragents) => cont.Kontragent === newValue
+    );
+    selectContragent(newContragent);
+  },
+  { immediate: false }
+);
+
+watch(login, async (newValue, oldValue) => {
+  console.log("watch login", newValue, oldValue);
+
+  await loginProcedures();
 });
- 
- watch(login, async (newValue, oldValue) => {
-   console.log("watch login", newValue, oldValue);
 
-   await loginProcedures();
- });
+// watch(loginCookie, async (newValue, oldValue) => {
+//   console.log("watch loginCookie", newValue, oldValue);
 
- watch(loginCookie, async (newValue, oldValue) => {
-   console.log("watch loginCookie", newValue, oldValue);
-
-   await loginProcedures();
- });
-
-if (!loginCookie.value && !auth.value && route.path !== "/login") navigateTo("/login");
-loginProcedures();
+//   await loginProcedures();
+// });
+let goodsLength = computed(() => goods.value ? goods.value.length : 0);
+if (!loginCookie.value && !auth.value && route.path !== "/login")
+  navigateTo("/login");
+await loginProcedures();
 provide("contragents", contragents);
 provide("goods", goods);
+provide("goodsLength", goodsLength);
 provide("tree", tree);
 provide("folders", folders);
 provide("auth", auth);
@@ -330,34 +323,31 @@ provide("loginData", loginData);
 provide("search", search);
 provide("infotronicManager", infotronicManager);
 
-//useHead({
-//  title: "b2.belca.by",
-//  link: [{ rel: "icon", type: "image/png", href: "/favicon.png" }],
-// script: [
-//   {
-//     src: "https://www.googletagmanager.com/gtag/js?id=AW-10987447766",
-//     async: true,
-//   },
-//   {
-//     innerHTML: `
-//       window.dataLayer = window.dataLayer || [];
-//       function gtag(){dataLayer.push(arguments);}
-//       gtag('js', new Date());
-//       gtag('config', 'AW-10987447766');
+onUnmounted(() => {
+  contragents = [];
+  goods.value = [];
+  tree.value = [];
+  folders.value = [];
+  auth.value = false;
+  favs.value = [];
+  favsOnly.value = false;
+  orders.value = [];
+  ordersInfotronic.value = [];
+  cart.value = [];
+  mng.value = false;
+  osnManager.value = "";
+  managers.value = [];
+  boss.value = false;
+  balance.value = null;
+  invoices.value = [];
+  selectedContragent.value = "";
+  selectedContragentData.value =  undefined;
+  login.value = "";
+  password.value = "";
+  loginData.Kontragent = [];
+  loginData.Ответ = "";
+  search.value = "";
+  infotronicManager.value = false;
+});
 
-//     `,
-//     type: "text/javascript",
-//   },
-// ],
-//});
-
-// useSeoMeta({
-//   title: "b2.belca.by",
-//   ogTitle: "b2.belca.by",
-//   description:
-//     "Расходные материалы к принтерам в Минске - картриджи, тонер, чернила, фотобарабаны и другое.",
-//   ogDescription:
-//     "Расходные материалы к принтерам в Минске - картриджи, тонер, чернила, фотобарабаны и другое",
-//   ogImage: "https://b2.belca.by/logo.png",
-// });
 </script>

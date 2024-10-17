@@ -13,9 +13,9 @@ export default defineEventHandler(async (event) => {
     return [];
   }
 
-  const data = await fs.readFile(filePath, "utf-8");
+  let data: string | null = await fs.readFile(filePath, "utf-8");
   let balance = JSON.parse(data);
-
+  data = null;
   if (balance !== undefined) return balance;
   else return [];
 });

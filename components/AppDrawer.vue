@@ -35,10 +35,12 @@ const props = defineProps({
   folders: {
     type: Array as PropType<Goods[]>,
     required: true,
+    default: () => <Goods[]>[]
   },
   goods: {
     type: Array as PropType<Goods[]>,
     required: true,
+    default: () => <Goods[]>[]
   },
 });
 
@@ -84,4 +86,5 @@ const items = computed(() => {
   const tree = foldersToTree(props.folders);
   return tree ?? [];
 });
+
 </script>

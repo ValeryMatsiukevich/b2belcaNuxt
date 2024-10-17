@@ -20,8 +20,9 @@ export default defineEventHandler(async (event) => {
     return [];
   }
 
-  const data = await fs.readFile(filePath, "utf-8");
+  let data: string | null = await fs.readFile(filePath, "utf-8");
   let order = JSON.parse(data);
+  data = null;
   // order = favs.map((item:Goods) => ({ NomCode: item.NomCode }));
   if (order !== undefined) return order;
   else return [];

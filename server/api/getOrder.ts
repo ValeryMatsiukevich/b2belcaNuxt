@@ -1,22 +1,21 @@
+import axios from "axios";
+
 export default defineEventHandler(async (event) => {
   const credentials = await readBody(event);
 
   try {
     const url = `http://base.belca.by/UT/hs/Products/GetTablZak/?Zakaz=${credentials.order}`;
 
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await axios.get(url, {
       headers: {
         Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
       },
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     console.log(error);
     return [];

@@ -1,9 +1,6 @@
 <template>
   <div>
-    <AppHeader
-      :contragents="contragents as Contragents[]"
-      :goods="goods as Goods[]"
-    />
+    
     <v-row>
       <v-col cols="12" md="6">
         <v-card
@@ -55,8 +52,7 @@
 </template>
 
 <script lang="ts" setup>
-const contragents = inject<Ref<Contragents[]>>("contragents");
-const goods = inject<Goods[]>("goods");
+
 </script>
 
 <style></style>

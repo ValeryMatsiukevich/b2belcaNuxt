@@ -1,9 +1,6 @@
 <template>
   <div id="inovicesInfotronic" v-if="auth">
-    <AppHeader
-      :contragents="contragents as Contragents[]"
-      :goods="goods as Goods[]"
-    />
+    
     <template v-if="ordersInfotronic && ordersInfotronic.length > 0">
       <v-card>
         <v-table height="500" fixed-header hover>
@@ -129,8 +126,9 @@
 
 <script lang="ts" setup>
 const goods = inject<Ref<Goods[]>>("goods");
+
 const auth = inject<Ref<boolean>>("auth", ref(false));
-const contragents = inject<Ref<Contragents[]>>("contragents");
+
 const ordersInfotronic = inject<Ref<orderInfotronic[]>>("ordersInfotronic");
 const selectedContragentData = inject<Ref<Contragents>>(
   "selectedContragentData"
@@ -230,7 +228,7 @@ const writeOrder = async () => {
 const copyToBasket = () => {
   // Add order to basket logic here
   cart.value = [];
-  if (goods && selectedOrder.value) {
+  if (goods && goods.value && selectedOrder.value) {
     selectedOrder.value.Товары.forEach((good: Goods) => {
       const item = {
         NomCode: good.NomCode,
@@ -238,7 +236,7 @@ const copyToBasket = () => {
         Price: "1,00",
         inCart: good.Количество,
         Valuta: "BYN",
-        NomNaim: goods.value.find((g) => g.NomCode === good.NomCode).NomNaim,
+        NomNaim: goods.value.find((g:Goods) => g.NomCode === good.NomCode)?.NomNaim,
       };
 
       cart.value.push(item);
@@ -252,6 +250,8 @@ const copyToBasket = () => {
     console.error("Selected order is not defined");
   }
 };
+
+
 </script>
 
 <style></style>

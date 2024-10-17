@@ -145,8 +145,7 @@
                 color="primary"
                 text="Отправить"
                 variant="tonal"
-               
-                @click="message = false, submit()"
+                @click="(message = false), submit()"
               ></v-btn>
             </v-card-actions>
           </v-card>
@@ -176,30 +175,20 @@ const passwordCookie = useCookie("passwordCookie");
 const message = shallowRef(false);
 const { handleSubmit, handleReset } = useForm({
   validationSchema: {
-    name(value) {
+    name(value: string) {
       if (value?.length >= 2) return true;
 
       return "Имя должно быть не менее 2-х символов.";
     },
-    phone(value) {
+    phone(value: string) {
       if (/^[0-9-]{7,}$/.test(value)) return true;
 
       return "Номер телефона должен содержать минимум 7 цифр.";
     },
-    email(value) {
+    email(value: string) {
       if (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(value)) return true;
 
       return "Must be a valid e-mail.";
-    },
-    select(value) {
-      if (value) return true;
-
-      return "Select an item.";
-    },
-    checkbox(value) {
-      if (value === "1") return true;
-
-      return "Must be checked.";
     },
   },
 });
@@ -207,23 +196,22 @@ const name = useField("name");
 const phone = useField("phone");
 const text = useField("text");
 
-const submit = (async() => {
-  const mess=`Имя: ${name.value.value} Телефон: ${phone.value.value}  Сообщение: ${text.value.value}`
+const submit = async () => {
+  const mess = `Имя: ${name.value.value} Телефон: ${phone.value.value}  Сообщение: ${text.value.value}`;
   const sentEmailResult = await $fetch("/api/sendEmail", {
-      method: "POST",
-      body: JSON.stringify({
-        to: "sg@belca.by",
-        text: mess,
-        subject: "Сообщение с сайта B2.Belca.by",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    console.log(sentEmailResult);
+    method: "POST",
+    body: JSON.stringify({
+      to: "sg@belca.by",
+      text: mess,
+      subject: "Сообщение с сайта B2.Belca.by",
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  console.log(sentEmailResult);
   alert("Сообщение отправлено");
-  
-});
+};
 const checkLogin = async () => {
   console.log(login.value);
   console.log(password.value);

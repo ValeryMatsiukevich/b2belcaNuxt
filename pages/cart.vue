@@ -1,9 +1,5 @@
 <template>
   <div>
-    <AppHeader
-      :contragents="contragents as Contragents[]"
-      :goods="goods as Goods[]"
-    />
     <div class="d-flex justify-center">
       <v-stepper
         :items="['Шаг 1', 'Шаг 2']"
@@ -167,10 +163,8 @@ declare module "#app" {
   }
 }
 
-const { $mail } = useNuxtApp();
 const goods = inject<Goods[]>("goods");
-//const managers = inject<Managers[]>("managers") || [];
-const contragents = inject<Contragents[]>("contragents");
+
 const selectedContragentData = inject<Ref<Contragents>>(
   "selectedContragentData"
 );
@@ -246,8 +240,13 @@ const goodPicture = (article: String) => {
 };
 
 const name = useField("name");
-if(selectedContragentData && selectedContragentData.value === undefined) navigateTo('/');
-if (selectedContragentData && auth && selectedContragentData.value !== undefined) {
+if (selectedContragentData && selectedContragentData.value === undefined)
+  navigateTo("/");
+if (
+  selectedContragentData &&
+  auth &&
+  selectedContragentData.value !== undefined
+) {
   name.value.value = selectedContragentData.value.Kontragent;
 }
 const osnManager = inject<Ref<Managers>>("osnManager");
@@ -256,8 +255,8 @@ const email = useField("email");
 if (auth && selectedContragentData)
   email.value.value = selectedContragentData.value.EmailDlyaRassylky;
 const emailMng = useField("emailMng");
-if (osnManager) emailMng.value.value = osnManager.value.EMail;
-
+if (osnManager && osnManager.value && osnManager.value.EMail)
+  emailMng.value.value = osnManager.value?.EMail;
 
 // Initialize form
 
@@ -265,7 +264,6 @@ const { handleSubmit, handleReset } = useForm({
   validationSchema: {
     name(value: string) {
       if (value?.length >= 2) {
-
         return true;
       }
       return "Наименование должно быть минимум 2 символа.";
@@ -277,7 +275,6 @@ const { handleSubmit, handleReset } = useForm({
     email(value: string) {
       if (value) {
         if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
-
           return true;
         }
 

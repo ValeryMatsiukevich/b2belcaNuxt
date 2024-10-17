@@ -15,9 +15,10 @@ export default defineEventHandler(async (event) => {
     return [];
   }
 
-  const data = await fs.readFile(filePath, "utf-8");
+  let data: string | null = await fs.readFile(filePath, "utf-8");
   let favs = JSON.parse(data);
-  favs = favs.map((item:Goods) => ({ NomCode: item.NomCode }));
+  favs = favs.map((item: Goods) => ({ NomCode: item.NomCode }));
+  data = null;
   if (favs !== undefined) return favs;
   else return [];
 });

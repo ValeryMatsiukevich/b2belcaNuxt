@@ -11,7 +11,7 @@ export default async () => {
         },
       }
     );
-    const data = await response.json();
+    let data = await response.json();
     // process data
     // Check if file exists
     console.log("Get Managers1C API CALLED");
@@ -19,11 +19,13 @@ export default async () => {
     try {
       await fs.writeFile(filePath, JSON.stringify(data), "utf-8");
       console.log("Contragents file written successfully");
+      data="";
     } catch (error) {
+      data = "";
       console.error("Error writing contragents file:", error);
     }
   } catch (error) {
     console.error(error);
-    return new Response("Error processing request", { status: 500 });
+    return [];
   }
 };

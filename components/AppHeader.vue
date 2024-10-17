@@ -48,15 +48,23 @@
           min-width="350px"
           density="compact"
           class="mt-5"
-          :items="props.contragents.map((contragent) => contragent.Kontragent)"
+          :items="[
+            ...new Set(
+              props.contragents.map((contragent) => contragent.Kontragent)
+            ),
+          ]"
           v-model="selectedContragent"
         ></v-combobox>
       </ClientOnly>
       <v-divider></v-divider>
 
-      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down" v-if="goods">
+      <NuxtLink
+        to="/catalog"
+        class="ml-3 hidden-sm-and-down"
+        v-if="goodsLength"
+      >
         <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
-          <v-badge v-if="goods" color="primary" :content="goods.length">
+          <v-badge v-if="goodsLength" color="primary" :content="goodsLength">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
           </v-badge>
         </v-btn>
@@ -104,9 +112,65 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
-      <v-btn v-tooltip="'Долг'" class="ml-3 hidden-sm-and-down">{{
-        contragentBalance()
-      }}</v-btn>
+      <v-dialog max-width="500">
+        <template v-slot:activator="{ props: activatorProps }">
+          <v-btn
+            v-bind="activatorProps"
+            @click="calculateDebt()"
+            stacked
+            class="text-none"
+            v-tooltip="'Долг. Нажмите для расшифровки.'"
+          >
+            <v-badge
+              v-if="selectedContragentData"
+              color="primary"
+              :content="
+                contragentBalance() +
+                ' ' +
+                selectedContragentData?.priceCurrency
+              "
+            >
+              <v-icon size="large" icon="mdi mdi-account-credit-card"></v-icon>
+            </v-badge>
+          </v-btn>
+        </template>
+        <template v-slot:default="{ isActive }">
+          <v-card :title="selectedContragent">
+            <v-card-text>
+              <v-table height="300px" fixed-header>
+                <thead>
+                  <tr>
+                    <th class="text-left">№</th>
+                    <th class="text-left">Дата</th>
+                    <th class="text-left">Сумма к оплате</th>
+                    <th class="text-left">Дней отсрочки</th>
+                    <th class="text-left">Дней до оплаты</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in debt" :key="item.number">
+                    <td>{{ item.number }}</td>
+                    <td>{{ item.date }}</td>
+                    <td>{{ item.sum }}</td>
+                    <td>{{ item.dniOtsrochki }}</td>
+                    <td>{{ item.dniOplaty }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+
+              <v-btn
+                text="Close Dialog"
+                @click="isActive.value = false"
+              ></v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog>
+
       <v-divider></v-divider>
 
       <div class="text-center" v-if="osnManager?.ManagerTel">
@@ -120,7 +184,7 @@
           {{ osnManager?.ManagerTel }}
         </v-btn>
       </div>
-      <v-divider></v-divider>
+
       <v-btn
         v-if="mng"
         elevation="8"
@@ -133,6 +197,7 @@
           icon="mdi mdi-home-analytics"
         ></v-icon>
       </v-btn>
+
       <v-btn
         v-if="auth"
         @click="logout()"
@@ -150,15 +215,17 @@
   </div>
 </template>
 <script lang="ts" setup>
+// import Invoices from '~/pages/invoices.vue';
+
 const props = defineProps({
   contragents: {
     type: Array as PropType<Contragents[]>,
     required: true,
   },
-  goods: {
-    type: Array as PropType<Goods[]>,
+  goodsLength: {
+    type: Number,
     required: false,
-    default: () => [],
+    default: () => 0,
   },
 });
 const auth = inject<Ref<boolean>>("auth", ref(false));
@@ -170,15 +237,15 @@ const osnManager = inject<Ref<Managers>>("osnManager");
 let favsOnly = inject<Ref<boolean>>("favsOnly", ref(false));
 const ordersInfotronic = inject<Ref<orderInfotronic[]>>("ordersInfotronic");
 const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
-const orders = inject<Orders[]>("orders") || [];
+const invoices = inject<Ref<Invoices[]>>("invoices");
+let orders = inject<Orders[]>("orders") || [];
 const route = useRoute();
-const telmenu = ref(false);
-const telmenumob = ref(false);
+const debt = ref([]);
 const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
-const selectedContragentData = inject<Ref<Contragents>>(
+const selectedContragentData = inject<Ref<Contragents | undefined>>(
   "selectedContragentData"
 );
-const loginData = inject("loginData");
+
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
@@ -190,14 +257,13 @@ const contragentBalance = () => {
     selectedContragent.value === null ||
     selectedContragentData === undefined
   )
-    return "";
-  if (selectedContragentData.value === undefined || !balance) return "";
+    return 0;
+  if (selectedContragentData.value === undefined || !balance) return 0;
   const bal = balance?.value.find(
     (co) => co.UNP === selectedContragentData?.value.UNP
   );
-  if (bal?.Summa !== undefined)
-    return bal?.Summa + " " + selectedContragentData.value.priceCurrency;
-  else return "";
+  if (bal?.Summa !== undefined) return bal?.Summa;
+  else return 0;
 };
 const logout = () => {
   // Remove all cookies
@@ -251,4 +317,24 @@ function startPhoneCall() {
   const phoneNumber = osnManager?.value.ManagerTel;
   window.open(`tel:${phoneNumber}`, "_blank");
 }
+
+const calculateDebt = () => {
+  console.log("CALCULATE DEBT");
+  if (contragentBalance() > 0 && invoices) {
+    const contragentInvoices = invoices.value.filter(
+      (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
+    );
+    console.log(contragentInvoices);
+  }
+};
+// onUnmounted(() => {
+//   favs.value = [];
+//   orders = [];
+//   ordersInfotronic?.value.splice(0, ordersInfotronic.value.length);
+//   balance?.value.splice(0, balance.value.length);
+//   invoices?.value.splice(0, invoices.value.length);
+//   selectedContragent.value = "";
+//   debt.value = [];
+  
+// });
 </script>
