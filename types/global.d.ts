@@ -133,8 +133,9 @@ declare global {
   }
 
   interface Invoices {
-    Date: Date;
+    Date: string;
     DneyOtsrochki: number;
+    dniOplaty: number;
     NUM:string;
     Summa: number;
     SummaUSD: number;

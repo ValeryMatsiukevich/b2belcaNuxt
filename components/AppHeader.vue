@@ -58,29 +58,34 @@
       </ClientOnly>
       <v-divider></v-divider>
 
-      <NuxtLink
-        to="/catalog"
-        class="ml-3 hidden-sm-and-down"
-        v-if="goodsLength"
-      >
-        <v-btn class="text-none" stacked v-tooltip="'Создать резерв'">
+      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
+        <v-btn
+          class="text-none"
+          stacked
+          v-tooltip="'Создать резерв'"
+          @click="favsOnly = false"
+        >
           <v-badge v-if="goodsLength" color="primary" :content="goodsLength">
             <v-icon size="large" icon="mdi mdi-warehouse"></v-icon>
           </v-badge>
         </v-btn>
       </NuxtLink>
 
-      <AppCart />
+      <AppCart v-if="auth" />
 
       <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down" v-if="orders">
         <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
-          <v-badge v-if="orders" color="primary" :content="orders.length">
+          <v-badge
+            v-if="orders && auth"
+            color="primary"
+            :content="orders.length"
+          >
             <v-icon size="large" icon="mdi mdi-invoice-list"></v-icon>
           </v-badge>
         </v-btn>
       </NuxtLink>
       <NuxtLink
-        v-if="infotronicManager === true"
+        v-if="selectedContragent === 'Инфотроник (опт)'"
         @click="getOrdersInfotronic()"
         to="/invoicesInfotronic"
         class="ml-3 hidden-sm-and-down"
@@ -97,6 +102,11 @@
           >
             <v-icon size="large" icon="mdi mdi-truck-fast"></v-icon>
           </v-badge>
+        </v-btn>
+      </NuxtLink>
+      <NuxtLink v-if="mng" to="/specialorders" class="ml-3 hidden-sm-and-down">
+        <v-btn class="text-none" stacked v-tooltip="'Список заказных'">
+          <v-icon size="large" icon="mdi mdi-truck"></v-icon>
         </v-btn>
       </NuxtLink>
       <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
@@ -135,7 +145,7 @@
           </v-btn>
         </template>
         <template v-slot:default="{ isActive }">
-          <v-card :title="selectedContragent">
+          <v-card width="700px" :title="selectedContragent">
             <v-card-text>
               <v-table height="300px" fixed-header>
                 <thead>
@@ -149,11 +159,11 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in debt" :key="item.number">
-                    <td>{{ item.number }}</td>
-                    <td>{{ item.date }}</td>
-                    <td>{{ item.sum }}</td>
-                    <td>{{ item.dniOtsrochki }}</td>
-                    <td>{{ item.dniOplaty }}</td>
+                    <td width="200px">{{ item?.number }}</td>
+                    <td width="200px">{{ item?.date }}</td>
+                    <td>{{ item?.sum }}</td>
+                    <td>{{ item?.dniOtsrochki }}</td>
+                    <td>{{ item?.dniOplaty }}</td>
                   </tr>
                 </tbody>
               </v-table>
@@ -163,7 +173,8 @@
               <v-spacer></v-spacer>
 
               <v-btn
-                text="Close Dialog"
+                text="Закрыть"
+                variant="flat"
                 @click="isActive.value = false"
               ></v-btn>
             </v-card-actions>
@@ -198,13 +209,7 @@
         ></v-icon>
       </v-btn>
 
-      <v-btn
-        v-if="auth"
-        @click="logout()"
-        elevation="8"
-        v-bind="props"
-        v-tooltip="'Выйти'"
-      >
+      <v-btn @click="logout()" elevation="8" v-bind="props" v-tooltip="'Выйти'">
         <v-icon
           :class="{ 'text-red': boss && mng, 'text-orange': mng && !boss }"
           size="x-large"
@@ -215,7 +220,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-// import Invoices from '~/pages/invoices.vue';
+import dayjs from "dayjs";
 
 const props = defineProps({
   contragents: {
@@ -240,7 +245,7 @@ const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
 const invoices = inject<Ref<Invoices[]>>("invoices");
 let orders = inject<Orders[]>("orders") || [];
 const route = useRoute();
-const debt = ref([]);
+const debt = ref<Invoices[]>([]);
 const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
 const selectedContragentData = inject<Ref<Contragents | undefined>>(
   "selectedContragentData"
@@ -249,7 +254,7 @@ const selectedContragentData = inject<Ref<Contragents | undefined>>(
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
-const rememberMe = useCookie("rememberMe");
+// const rememberMe = useCookie("rememberMe");
 
 const contragentBalance = () => {
   if (
@@ -260,7 +265,7 @@ const contragentBalance = () => {
     return 0;
   if (selectedContragentData.value === undefined || !balance) return 0;
   const bal = balance?.value.find(
-    (co) => co.UNP === selectedContragentData?.value.UNP
+    (co: Balance) => co.UNP === selectedContragentData?.value?.UNP
   );
   if (bal?.Summa !== undefined) return bal?.Summa;
   else return 0;
@@ -270,7 +275,7 @@ const logout = () => {
   loginCookie.value = null;
   passwordCookie.value = null;
   storedSelectedContragent.value = null;
-  rememberMe.value = null;
+  // rememberMe.value = null;
   // Reset the auth state
   auth.value = false;
   mng.value = false;
@@ -300,17 +305,17 @@ watch(selectedContragent, (newValue: string) => {
   storedSelectedContragent.value = newValue;
 });
 
-function startViberChat() {
-  // Replace 'your_viber_username' with the actual Viber username
-  const viberUsername = "your_viber_username";
-  const viberLink = `https://viber.com/chat/${viberUsername}`;
-  window.open(viberLink, "_blank");
-}
-function startTelegramChat() {
-  // Replace 'tg://resolve?domain=your_telegram_username' with the actual Telegram chat link
-  const telegramLink = "tg://resolve?domain=your_telegram_username";
-  window.open(telegramLink, "_blank");
-}
+// function startViberChat() {
+//   // Replace 'your_viber_username' with the actual Viber username
+//   const viberUsername = "your_viber_username";
+//   const viberLink = `https://viber.com/chat/${viberUsername}`;
+//   window.open(viberLink, "_blank");
+// }
+// function startTelegramChat() {
+//   // Replace 'tg://resolve?domain=your_telegram_username' with the actual Telegram chat link
+//   const telegramLink = "tg://resolve?domain=your_telegram_username";
+//   window.open(telegramLink, "_blank");
+// }
 
 function startPhoneCall() {
   // Replace '+375293607712' with the actual phone number
@@ -320,21 +325,80 @@ function startPhoneCall() {
 
 const calculateDebt = () => {
   console.log("CALCULATE DEBT");
-  if (contragentBalance() > 0 && invoices) {
-    const contragentInvoices = invoices.value.filter(
-      (inv: Invoices) => inv.UNP === selectedContragentData?.value.UNP
-    );
-    console.log(contragentInvoices);
+  let currBalance = contragentBalance();
+  let ostBalance = currBalance;
+  let contragentInvoices = <Invoices[]>[];
+  debt.value = [];
+  if (invoices)
+    contragentInvoices = invoices.value
+      .filter((inv: Invoices) => inv.UNP === selectedContragentData?.value?.UNP)
+      .sort((a, b) => new Date(b.Date) - new Date(a.Date));
+  if (currBalance > 0 && invoices) {
+    //  console.log(contragentInvoices);
+    if (contragentInvoices) {
+      for (let i = 0; i < contragentInvoices.length; i++) {
+        console.log(
+          "ostBalance ",
+          ostBalance,
+          "CurrBalance ",
+          currBalance,
+          "contragentInvoices[i].Summa ",
+          contragentInvoices[i].Summa
+        );
+        if (ostBalance < 0 && contragentInvoices[0].Summa > currBalance) {
+          console.log("DEBT1", contragentInvoices[i].NUM);
+          debt.value.push({
+            number: contragentInvoices[i].NUM,
+            date: dayjs(new Date(contragentInvoices[i].Date)).format(
+              "DD-MM-YYYY"
+            ), // or any other format you need,
+            sum: currBalance, // also, you probably want to use Summa here, not Date
+            dniOtsrochki: contragentInvoices[i].DneyOtsrochki,
+            dniOplaty:
+              contragentInvoices[i].DneyOtsrochki -
+              dayjs().diff(new Date(contragentInvoices[i].Date), "days"),
+          });
+          console.log("DEBT", debt.value);
+          break;
+        }
+        if (ostBalance < 0) {
+          break;
+        }
+        if (ostBalance > 0 && contragentInvoices[i].Summa > ostBalance) {
+          console.log("DEBT3", contragentInvoices[i].NUM);
+
+          debt.value.push({
+            number: contragentInvoices[i]?.NUM,
+            date: dayjs(new Date(contragentInvoices[i].Date)).format(
+              "DD-MM-YYYY"
+            ),
+
+            sum: ostBalance.toFixed(2), // also, you probably want to use Summa here, not Date
+            dniOtsrochki: contragentInvoices[i].DneyOtsrochki,
+            dniOplaty: dayjs().diff(
+              new Date(contragentInvoices[i].Date),
+              "days"
+            ),
+          });
+          break;
+        }
+        if (ostBalance > 0 && contragentInvoices[i].Summa < currBalance) {
+          console.log("DEBT2", contragentInvoices[i].NUM);
+          ostBalance = ostBalance - contragentInvoices[i].Summa;
+          debt.value.push({
+            number: contragentInvoices[i]?.NUM,
+            date: dayjs(new Date(contragentInvoices[i].Date)).format(
+              "DD-MM-YYYY"
+            ), // or any other format you need,
+            sum: contragentInvoices[i].Summa, // also, you probably want to use Summa here, not Date
+            dniOtsrochki: contragentInvoices[i].DneyOtsrochki,
+            dniOplaty:
+              contragentInvoices[i].DneyOtsrochki -
+              dayjs().diff(new Date(contragentInvoices[i].Date), "days"),
+          });
+        }
+      }
+    }
   }
 };
-// onUnmounted(() => {
-//   favs.value = [];
-//   orders = [];
-//   ordersInfotronic?.value.splice(0, ordersInfotronic.value.length);
-//   balance?.value.splice(0, balance.value.length);
-//   invoices?.value.splice(0, invoices.value.length);
-//   selectedContragent.value = "";
-//   debt.value = [];
-  
-// });
 </script>

@@ -18,10 +18,11 @@ function startScheduler() {
     .run(() => {
       getOst8skl1C();
       getPrices();
-     
-      console.log("GC");
-       global?.gc?.();
-      
+      if (global.gc) {
+        console.log("GC");
+        global.gc();
+        console.log("Memory usage :", process.memoryUsage().heapUsed / 1024 / 1024, "MB");
+      }
     })
     .everyHours(1);
   scheduler

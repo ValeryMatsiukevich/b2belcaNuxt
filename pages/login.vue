@@ -77,20 +77,20 @@
                   ></v-checkbox>
                 </v-container>
                 <v-card-actions>
-                  <v-btn prepend-icon="mdi mdi-email" @click="message = true">
+                  <v-btn prepend-icon="mdi mdi-email" @click="message = true" variant="flat">
                     Написать<br />руководству
                   </v-btn>
 
                   <v-btn
                     text="Закрыть"
-                    variant="plain"
+                    variant="flat"
                     @click="dialog = false"
                   ></v-btn>
 
                   <v-btn
                     color="primary"
                     text="Войти"
-                    variant="tonal"
+                   variant="flat"
                     @click="(dialog = false), checkLogin()"
                   ></v-btn>
                 </v-card-actions>
@@ -137,14 +137,14 @@
 
               <v-btn
                 text="Закрыть"
-                variant="plain"
+                variant="flat"
                 @click="message = false"
               ></v-btn>
 
               <v-btn
                 color="primary"
                 text="Отправить"
-                variant="tonal"
+                variant="flat"
                 @click="(message = false), submit()"
               ></v-btn>
             </v-card-actions>
@@ -167,8 +167,8 @@ const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
 const loginData =
   inject<Ref<LoginResponse>>("loginData") || ref<LoginResponse>();
-const login = inject("login");
-const password = inject("password");
+const login = inject<Ref<string>>("login");
+const password = inject<Ref<string>>("password");
 const infotronicManager = inject<Ref<boolean>>("infotronicManager");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
@@ -213,13 +213,16 @@ const submit = async () => {
   alert("Сообщение отправлено");
 };
 const checkLogin = async () => {
-  console.log(login.value);
-  console.log(password.value);
+  let loginD = login || loginCookie.value || "";
+  let passwordD = password || passwordCookie.value || "";
+  if(loginD === '' || passwordD === '') return;
+  console.log('login.value ',login?.value);
+  console.log('login.value ',password?.value);
   const loginDataRaw = await $fetch("/api/login", {
     method: "POST",
     body: JSON.stringify({
-      Login: login.value,
-      Password: password.value,
+      Login: login?.value,
+      Password: password?.value,
     }),
     headers: {
       "Content-Type": "application/json",
@@ -227,7 +230,7 @@ const checkLogin = async () => {
   });
 
   loginData.value = loginDataRaw;
-  console.log(loginData.value);
+  console.log("loginData.value from Login.vue:",loginData.value);
   const route = useRoute();
   if (loginData.value && loginData.value.Ответ !== "") {
     console.log(loginData.value);
@@ -258,11 +261,11 @@ const checkLogin = async () => {
     }
 
     if (String(rememberMe.value) === "true") {
-      loginCookie.value = login.value;
-      passwordCookie.value = password.value;
+      loginCookie.value = login?.value;
+      passwordCookie.value = password?.value;
     }
 
-    if (auth.value && route.path !== "/") {
+    if (auth.value===true && route.path !== "/") {
       navigateTo("/");
     }
   } else if (!auth.value) {
