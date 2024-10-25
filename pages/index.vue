@@ -36,14 +36,14 @@ const getRandomPicture = (min: number, max: number) => {
       Math.floor(Math.random() * (max - min) + min) +
       ".jpg"
   );
-  console.log(pic);
+ // console.log(pic);
   return pic;
 };
 
 const img1 = getRandomPicture(0, 8);
 const img2 = getRandomPicture(9, 18);
 const img3 = getRandomPicture(19, 26);
-console.log("page index");
+//console.log("page index");
 // const accepted = useCookie("accepted");
 // accepted.value = <string>accepted.value || "no";
 </script>

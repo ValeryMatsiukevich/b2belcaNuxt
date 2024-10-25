@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 const auth = inject<Ref<boolean>>("auth", ref(false));
 if (!auth.value) navigateTo("/");
-console.log("catalog loaded");
+//console.log("catalog loaded");
 let goods = inject<Goods[]>("goods");
 let folders = inject<Goods[]>("folders");
 

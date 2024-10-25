@@ -142,6 +142,25 @@ declare global {
     UNP: string;
     Valuta: string;
   }
+  interface SpecialOrders {
+    ClientUNP: string;
+    UNP: string;
+    client: string;
+    date: string;
+    good: string;
+    guid: string;
+    manager: string;
+    number: number;
+    ordernumber: string;
+    price:string;
+    quantity: number;
+    response: string;
+    status: number;
+    sklad: number;
+    supplier: number;
+    term:string;  
+    type: number;
+    version: number;
 }
 
 

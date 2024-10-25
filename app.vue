@@ -1,38 +1,38 @@
 <template>
   <div id="app">
-    <VApp>
-      <VMain>
-        <AppHeader
-          v-if="auth"
-          :contragents="contragents as Contragents[]"
-          :goodsLength="goodsLength as number"
-        />
-        <v-dialog v-model="dialogVisible" max-width="320" persistent>
-          <v-list class="py-2" color="primary" elevation="12" rounded="lg">
-            <v-list-item
-              prepend-icon="$vuetify-outline"
-              title="Загружаю данные..."
-            >
-              <template v-slot:prepend>
-                <div class="pe-4">
-                  <v-icon color="primary" size="x-large"></v-icon>
-                </div>
-              </template>
-
-              <template v-slot:append>
-                <v-progress-circular
-                  color="primary"
-                  indeterminate="disable-shrink"
-                  size="16"
-                  width="2"
-                ></v-progress-circular>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-dialog>
-        <NuxtPage />
-      </VMain>
-    </VApp>
+    <ClientOnly>
+      <VApp>
+        <VMain>
+          <AppHeader
+            v-if="auth"
+            :contragents="contragents as Contragents[]"
+            :goodsLength="goodsLength as number"
+          />
+          <v-dialog two v-model="dialogVisible" max-width="320" persistent>
+            <v-list class="py-2" color="primary" elevation="12" rounded="lg">
+              <v-list-item prepend-icon="$vuetify-outline">
+                <template v-slot:prepend>
+                  <div class="pe-4">
+                    <v-icon color="primary" size="x-large"></v-icon>
+                  </div>
+                </template>
+                Загружаю товары, цены и остатки на складах, пожалуйста,
+                подождите...
+                <template v-slot:append>
+                  <v-progress-circular
+                    color="primary"
+                    indeterminate="disable-shrink"
+                    size="16"
+                    width="2"
+                  ></v-progress-circular>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-dialog>
+          <NuxtPage />
+        </VMain>
+      </VApp>
+    </ClientOnly>
   </div>
 </template>
 
@@ -61,7 +61,7 @@ const selectedContragent = ref("");
 const selectedContragentData = ref<Contragents>();
 const login = ref("");
 const password = ref("");
-let loginData = <LoginResponse>{};
+let loginData = ref<LoginResponse>();
 const folders = ref<Goods[]>();
 const managers = ref<Managers[]>([]);
 const balance = ref<Balance[]>([]);
@@ -89,10 +89,10 @@ const loginProcedures = async () => {
     },
   });
   if (loginDataraw.value?.Ответ === "Successful !")
-    loginData = loginDataraw.value;
-  console.log(loginData);
+    loginData.value = loginDataraw.value;
+  console.log(loginData.value);
 
-  if (loginData && loginData.Ответ === "Successful !") {
+  if (loginData && loginData?.value?.Ответ === "Successful !") {
     auth.value = true;
     console.log("Auth:", auth.value);
 
@@ -109,11 +109,11 @@ const loginProcedures = async () => {
     invoices.value = await $fetch("/api/readInvoices");
     if (
       loginData &&
-      loginData.Kontragent &&
-      loginData.Kontragent[0] &&
-      loginData.Kontragent[0].Manager
+      loginData.value.Kontragent &&
+      loginData.value.Kontragent[0] &&
+      loginData.value.Kontragent[0].Manager
     ) {
-      console.log("Manager:", loginData.Kontragent[0].Manager);
+      console.log("Manager:", loginData.value.Kontragent[0].Manager);
       mng.value = true;
       if (
         storedSelectedContragent.value !== undefined &&
@@ -127,7 +127,7 @@ const loginProcedures = async () => {
         if (contr) selectContragent(contr);
       }
     }
-    const UNP = loginData.Kontragent[0].UNP.trim();
+    const UNP = loginData.value.Kontragent[0].UNP.trim();
     if (UNP === "0000000055" || UNP === "000000100") {
       boss.value = true;
     }
@@ -144,14 +144,14 @@ const loginProcedures = async () => {
 
     if (
       loginData &&
-      loginData !== undefined &&
-      loginData.Kontragent[0]?.Manager === false
+      loginData.value !== undefined &&
+      loginData.value.Kontragent[0]?.Manager === false
     ) {
       console.log("Enduser");
-      selectedContragent.value = loginData.Kontragent[0]?.Kontragent;
+      selectedContragent.value = loginData.value.Kontragent[0]?.Kontragent;
       selectedContragentData.value = contragents.value.find(
         (contragent: Contragents) =>
-          contragent.UNP === loginData?.Kontragent[0].UNP
+          contragent.UNP === loginData?.value?.Kontragent[0].UNP
       );
       if (selectedContragentData.value !== undefined) {
         selectContragent(selectedContragentData.value);
@@ -166,10 +166,10 @@ const loginProcedures = async () => {
           (inv: Invoices) => inv.UNP === selectedContragentData.value?.UNP
         );
         console.log("GET goods from LoginProcedures");
-        getFavs();
-        getOrder();
-        getOrders();
-        getGoods();
+        await getFavs();
+        await getOrder();
+        await getOrders();
+        await getGoods();
         osnManager.value = managers.value.find(
           (o: Managers) =>
             o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
@@ -199,7 +199,7 @@ if (
 const getGoods = async () => {
   goods.value = [];
   console.log("GET goods from getGoods");
-  if (!loginData) return;
+  if (!loginData.value) return;
   const maxRetries = 5;
   const retryDelay = 1000; // 500ms
 
@@ -213,7 +213,7 @@ const getGoods = async () => {
         body: JSON.stringify({
           type: priceType,
           spec: selectedContragentData.value?.KodTipSpecCen,
-          UNP: loginData.Kontragent[0].UNP,
+          UNP: loginData.value.Kontragent[0].UNP,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -313,7 +313,7 @@ const selectContragent = async (newContragent: Contragents) => {
   //if (newContragent === undefined) return;
   dialogVisible.value = true;
   console.log("selectedContragent changed:", "->", newContragent);
-  
+
   selectedContragentData.value = newContragent;
   if (
     selectedContragentData.value &&
@@ -360,12 +360,12 @@ const selectContragent = async (newContragent: Contragents) => {
   }
   goods.value = [];
   console.log("GET goods from SelectContragent");
-  getGoods();
+  await getGoods();
   favs.value = [];
-  getFavs();
-  getOrder();
+  await getFavs();
+  await getOrder();
   orders.value = [];
-  getOrders();
+  await getOrders();
   osnManager.value = managers.value.find(
     (o: Managers) =>
       o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
@@ -394,7 +394,7 @@ watch(auth, async (newValue, oldValue) => {
 });
 
 watch(goods, async (newValue, oldValue) => {
-  if (goods && goods?.value?.length > 0) dialogVisible.value = false;
+  if (goods.value && goods?.value?.length > 0) dialogVisible.value = false;
 });
 
 provide("contragents", contragents);
@@ -443,8 +443,8 @@ onBeforeUnmount(() => {
   selectedContragentData.value = undefined;
   login.value = "";
   password.value = "";
-  loginData.Kontragent = [];
-  loginData.Ответ = "";
+  loginData.value = undefined;
+
   search.value = "";
   infotronicManager.value = false;
 });
