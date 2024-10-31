@@ -169,6 +169,16 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
+      <v-btn v-if="auth && !mng&& route.path !== '/service'"
+          variant="text"
+          v-tooltip="'Скачать прайс'"
+          class="hidden-sm-and-down"
+          :href="'https://b2.belca.by/1c/Prices/' + priceType() + '.xlsx'" download
+          
+        >
+          <v-icon size="large" color="white" icon="mdi-file-download" />
+          
+        </v-btn>
       <v-dialog v-if="auth && route.path !== '/service'" max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
           <v-btn
@@ -230,7 +240,7 @@
       </v-dialog>
 
       <v-divider></v-divider>
-
+     
       <div
         class="text-center"
         v-if="osnManager?.ManagerTel && route.path !== '/service'"
@@ -306,6 +316,18 @@ const selectedContragentData = inject<Ref<Contragents | undefined>>(
 const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
+
+const priceType = () => {
+  if (selectedContragentData.value?.Tip === 1) return  '000000107'
+      else if (selectedContragentData.value?.Tip === 2) return '000000009'
+      else if (selectedContragentData.value?.Tip === 3) return '000000105'
+      else if (selectedContragentData.value?.Tip === 4 && selectedContragentData.value?.Priznak === 2) return '000000111'
+      else if (selectedContragentData.value?.Tip === 5) this.priceType = '000000006'
+      else if (selectedContragentData.value?.Tip === 6 || (selectedContragentData.value?.Tip === 4 && selectedContragentData.value?.Priznak === 3)) return '000000114' 
+
+     
+}
+
 // const rememberMe = useCookie("rememberMe");
 const getOrdersEvent = inject<Function>('getOrdersEvent');
   const callGetOrdersEvent = () => {
