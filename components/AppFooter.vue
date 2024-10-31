@@ -7,6 +7,11 @@
             Главная
           </v-btn>
         </NuxtLink>
+        <NuxtLink to="/catalog">
+          <v-btn class="mx-2" color="black" rounded="xl" variant="text">
+            Каталог
+          </v-btn>
+        </NuxtLink>
         <NuxtLink to="/contacts">
           <v-btn class="mx-2" color="black" rounded="xl" variant="text">
             Контакты

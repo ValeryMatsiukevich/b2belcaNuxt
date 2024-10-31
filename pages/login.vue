@@ -234,8 +234,16 @@ const checkLogin = async () => {
   const route = useRoute();
   if (loginData.value && loginData.value.Ответ !== "") {
     console.log(loginData.value);
-    if (loginData.value.Ответ === "Successful !") {
+    if (loginData.value.Ответ === "Successful !" && loginData.value.Kontragent.length > 0) {
       auth.value = true;
+    }
+    if(loginData.value.Ответ === "Successful !" && loginData.value.Kontragent.length === 0) {
+      alert("Логин и пароль верны, но карточка клиента в 1С не правильно заполнена. Обратитесь к вашему менеджеру.");
+      login.value = '';
+      password.value = '';
+      loginCookie.value = '';
+      passwordCookie.value = '';
+      return;
     }
     if (
       loginData.value &&

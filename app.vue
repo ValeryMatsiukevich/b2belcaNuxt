@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <ClientOnly>
+    
       <VApp>
         <VMain>
           <AppHeader
@@ -32,7 +32,7 @@
           <NuxtPage />
         </VMain>
       </VApp>
-    </ClientOnly>
+    
   </div>
 </template>
 
@@ -53,6 +53,7 @@ const infotronicManager = ref(false);
 let priceType = "";
 const tree = ref([]);
 const orders = ref([]);
+const serviceMode = ref(0);
 const ordersInfotronic = ref<orderInfotronic[]>([]);
 const favs = ref<Goods[]>();
 const goods = ref<Goods[]>();
@@ -174,7 +175,7 @@ const loginProcedures = async () => {
           (o: Managers) =>
             o.ManagerCode === selectedContragentData.value?.OsnmanagerCode
         );
-        managers.value = [];
+        //managers.value = [];
       }
     }
   }
@@ -372,6 +373,7 @@ const selectContragent = async (newContragent: Contragents) => {
   );
 };
 
+
 watch(
   selectedContragent,
   async (newValue, oldValue) => {
@@ -396,7 +398,12 @@ watch(auth, async (newValue, oldValue) => {
 watch(goods, async (newValue, oldValue) => {
   if (goods.value && goods?.value?.length > 0) dialogVisible.value = false;
 });
-
+ provide('getOrdersEvent', () => {
+   // код, который будет выполнен при вызове getOrdersEvent
+   console.log('getOrdersEvent вызван!');
+   // вызов функции getOrders
+   getOrders();
+ });
 provide("contragents", contragents);
 provide("goods", goods);
 provide("goodsLength", goodsLength);
@@ -413,6 +420,7 @@ provide("osnManager", osnManager);
 provide("managers", managers);
 provide("boss", boss);
 provide("balance", balance);
+provide("serviceMode", serviceMode);
 provide("invoices", invoices);
 provide("selectedContragent", selectedContragent);
 provide("selectedContragentData", selectedContragentData);

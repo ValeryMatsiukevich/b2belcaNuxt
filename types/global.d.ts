@@ -150,7 +150,7 @@ declare global {
     good: string;
     guid: string;
     manager: string;
-    number: number;
+    number: string;
     ordernumber: string;
     price:string;
     quantity: number;

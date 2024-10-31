@@ -120,7 +120,7 @@ const auth = inject<Ref<boolean>>("auth", ref(false));
 // const mng = inject<Ref<boolean>>("mng", ref(false));
 // const boss = inject<Ref<boolean>>("boss", ref(false));
 // const selectedContragentData = inject<Contragents>("selectedContragentData");
-  const orders = inject<Orders[]>("orders", []);
+const orders = inject<Orders[]>("orders", []);
 const order = ref<Order>({
   Comment: "",
   SummaDokumenta: "",

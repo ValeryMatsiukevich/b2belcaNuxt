@@ -1,6 +1,5 @@
 <template>
   <div id="inovicesInfotronic" v-if="auth">
-    
     <template v-if="ordersInfotronic && ordersInfotronic.length > 0">
       <v-card>
         <v-table height="500" fixed-header hover>
@@ -161,7 +160,7 @@ const getNaim = (Номенклатура_Key: string) => {
 const ostTrost = (Номенклатура_Key: string) => {
   if (goods) {
     let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-    if (good && good.hasOwnProperty("good.Skl000000006"))
+    if (good && good.hasOwnProperty("Skl000000006"))
       return good.Skl000000006;
     else if (good && good.Quantity !== undefined) return good.Quantity;
     else return 0;
@@ -170,25 +169,26 @@ const ostTrost = (Номенклатура_Key: string) => {
 const resTrost = (Номенклатура_Key: string) => {
   if (goods) {
     let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-    if (good && good.hasOwnProperty("good.Res000000006"))
+    if (good && good.hasOwnProperty("Res000000006"))
       return good.Res000000006;
-    else return "0";
+    else return 0;
   }
 };
 const ostKol = (Номенклатура_Key: string) => {
   if (goods) {
     let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-    if (good && good.hasOwnProperty("good.Skl000000014"))
+    console.log(good);
+    if (good && good.hasOwnProperty("Skl000000014"))
       return good.Skl000000014;
-    else return "0";
+    else return 0;
   }
 };
 const resKol = (Номенклатура_Key: string) => {
   if (goods) {
     let good = goods.value.find((g) => g.Ref_Key === Номенклатура_Key);
-    if (good && good.hasOwnProperty("good.Res000000014"))
+    if (good && good.hasOwnProperty("Res000000014"))
       return good.Res000000014;
-    else return "0";
+    else return 0;
   }
 };
 const getOrder = (orderNumber: string) => {
@@ -201,7 +201,7 @@ const getOrder = (orderNumber: string) => {
       selectedOrder.value.Товары.forEach((good: Goods) => {
         good.NomCode = getCode(good.Номенклатура_Key);
         good.Articul = getArticle(good.Номенклатура_Key);
-        console.log("good.NomCode ", good.NomCode);
+        // console.log("good ", good);
       });
     }
     isActive.value = true;
@@ -213,7 +213,7 @@ const getOrder = (orderNumber: string) => {
 const writeOrder = async () => {
   if (selectedContragentData && cart) {
     const cartValue = cart.value; // Cast cart to Ref<Goods[]>
-    const orderData = await $fetch("/api/writeOrder", {
+    await $fetch("/api/writeOrder", {
       method: "POST",
       body: JSON.stringify({
         unp: selectedContragentData.value.UNP,
@@ -236,7 +236,8 @@ const copyToBasket = () => {
         Price: "1,00",
         inCart: good.Количество,
         Valuta: "BYN",
-        NomNaim: goods.value.find((g:Goods) => g.NomCode === good.NomCode)?.NomNaim,
+        NomNaim: goods.value.find((g: Goods) => g.NomCode === good.NomCode)
+          ?.NomNaim,
       };
 
       cart.value.push(item);
@@ -250,8 +251,6 @@ const copyToBasket = () => {
     console.error("Selected order is not defined");
   }
 };
-
-
 </script>
 
 <style></style>

@@ -39,10 +39,38 @@
           />
         </v-avatar>
       </NuxtLink>
+
       <v-divider></v-divider>
       <ClientOnly>
+        <v-btn
+          v-if="mng && route.path === '/service'"
+          class="text-none"
+          @click="serviceMode = 1"
+          stacked
+          v-tooltip="'Статистика посещений'"
+        >
+          <v-icon size="large" icon="mdi mdi-chart-bell-curve-cumulative"></v-icon>
+        </v-btn>
+        <v-btn
+          v-if="mng && route.path === '/service'"
+          class="text-none"
+          @click="serviceMode = 2"
+          stacked
+          v-tooltip="'CRM'"
+        >
+          <v-icon size="large" icon="mdi mdi-chart-box-multiple"></v-icon>
+        </v-btn>
+        <v-btn
+          v-if="mng && route.path === '/service'"
+          @click="serviceMode = 3"
+          class="text-none"
+          stacked
+          v-tooltip="'Заказные'"
+        >
+          <v-icon size="large" icon="mdi mdi-truck"></v-icon>
+        </v-btn>
         <v-combobox
-          v-if="mng && props.contragents"
+          v-if="mng && props.contragents && route.path !== '/service'"
           label="Контрагент"
           clearable
           min-width="350px"
@@ -58,7 +86,11 @@
       </ClientOnly>
       <v-divider></v-divider>
 
-      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
+      <NuxtLink
+        v-if="auth && route.path !== '/service'"
+        to="/catalog"
+        class="ml-3 hidden-sm-and-down"
+      >
         <v-btn
           class="text-none"
           stacked
@@ -71,10 +103,14 @@
         </v-btn>
       </NuxtLink>
 
-      <AppCart v-if="auth" />
+      <AppCart v-if="auth && route.path !== '/service'" />
 
-      <NuxtLink to="/invoices" class="ml-3 hidden-sm-and-down" v-if="orders">
-        <v-btn class="text-none" stacked v-tooltip="'Список заказов'">
+      <NuxtLink
+        to="/invoices"
+        class="ml-3 hidden-sm-and-down"
+        v-if="orders && route.path !== '/service'"
+      >
+        <v-btn class="text-none" stacked v-tooltip="'Список заказов'" @click="callGetOrdersEvent">
           <v-badge
             v-if="orders && auth"
             color="primary"
@@ -85,7 +121,9 @@
         </v-btn>
       </NuxtLink>
       <NuxtLink
-        v-if="selectedContragent === 'Инфотроник (опт)'"
+        v-if="
+          selectedContragent === 'Инфотроник (опт)' && route.path !== '/service'
+        "
         @click="getOrdersInfotronic()"
         to="/invoicesInfotronic"
         class="ml-3 hidden-sm-and-down"
@@ -104,12 +142,21 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
-      <NuxtLink v-if="mng" to="/specialorders" class="ml-3 hidden-sm-and-down">
+      <NuxtLink
+        v-if="mng && route.path !== '/service'"
+        to="/specialorders"
+        class="ml-3 hidden-sm-and-down"
+      >
         <v-btn class="text-none" stacked v-tooltip="'Список заказных'">
           <v-icon size="large" icon="mdi mdi-truck"></v-icon>
         </v-btn>
       </NuxtLink>
-      <NuxtLink to="/catalog" class="ml-3 hidden-sm-and-down">
+
+      <NuxtLink
+        v-if="auth && route.path !== '/service'"
+        to="/catalog"
+        class="ml-3 hidden-sm-and-down"
+      >
         <v-btn
           :color="favsOnly ? 'red' : 'white'"
           @click="changeFavsOnly()"
@@ -122,7 +169,7 @@
           </v-badge>
         </v-btn>
       </NuxtLink>
-      <v-dialog max-width="500">
+      <v-dialog v-if="auth && route.path !== '/service'" max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
           <v-btn
             v-bind="activatorProps"
@@ -184,7 +231,10 @@
 
       <v-divider></v-divider>
 
-      <div class="text-center" v-if="osnManager?.ManagerTel">
+      <div
+        class="text-center"
+        v-if="osnManager?.ManagerTel && route.path !== '/service'"
+      >
         <v-btn
           variant="outlined"
           class="hidden-sm-and-down"
@@ -195,19 +245,20 @@
           {{ osnManager?.ManagerTel }}
         </v-btn>
       </div>
-
-      <v-btn
-        v-if="mng"
-        elevation="8"
-        v-bind="props"
-        v-tooltip="'Служебный раздел'"
-      >
-        <v-icon
-          :class="{ 'text-red': boss && mng, 'text-orange': mng && !boss }"
-          size="x-large"
-          icon="mdi mdi-home-analytics"
-        ></v-icon>
-      </v-btn>
+      <NuxtLink class = "hidden-sm-and-down" v-if="mng && route.path !== '/service'" to="/service">
+        <v-btn
+          v-if="mng"
+          elevation="8"
+          v-bind="props"
+          v-tooltip="'Служебный раздел'"
+        >
+          <v-icon
+            :class="{ 'text-red': boss && mng, 'text-orange': mng && !boss }"
+            size="x-large"
+            icon="mdi mdi-home-analytics"
+          ></v-icon>
+        </v-btn>
+      </NuxtLink>
 
       <v-btn @click="logout()" elevation="8" v-bind="props" v-tooltip="'Выйти'">
         <v-icon
@@ -244,6 +295,7 @@ const ordersInfotronic = inject<Ref<orderInfotronic[]>>("ordersInfotronic");
 const infotronicManager = inject<Ref<boolean>>("infotronicManager", ref(false));
 const invoices = inject<Ref<Invoices[]>>("invoices");
 let orders = inject<Orders[]>("orders") || [];
+const serviceMode = inject<Ref<number>>("serviceMode");
 const route = useRoute();
 const debt = ref<Invoices[]>([]);
 const selectedContragent = inject<Ref<string>>("selectedContragent", ref(""));
@@ -255,7 +307,12 @@ const storedSelectedContragent = useCookie("storedSelectedContragent");
 const loginCookie = useCookie("loginCookie");
 const passwordCookie = useCookie("passwordCookie");
 // const rememberMe = useCookie("rememberMe");
-
+const getOrdersEvent = inject<Function>('getOrdersEvent');
+  const callGetOrdersEvent = () => {
+  if (getOrdersEvent) {
+    getOrdersEvent();
+  }
+};  
 const contragentBalance = () => {
   if (
     !selectedContragent ||

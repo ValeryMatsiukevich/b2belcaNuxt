@@ -52,7 +52,7 @@
                       </v-chip>
 
                       <v-chip
-                        :text="String(item.inCart)"
+                        :text="String(item.Quantity)"
                         class="text-uppercase"
                         size="small"
                         label
@@ -177,25 +177,25 @@ const selectedContragentData = inject<Ref<Contragents>>(
 const cart = inject<Ref<Goods[]>>("cart");
 
 const sum = (item: any) => {
-  return item.inCart * Number(item.Price.replace(",", "."));
+  console.log(item);
+  return item.Quantity * Number(String(item.Price).replace(",", "."));
 };
 const incrementQuantity = (item: any) => {
-  if (item.Quantity > item.inCart) {
-    item.inCart++;
-  }
+  item.Quantity++;
+
   writeOrder();
 };
 
 const decrementQuantity = (item: any) => {
-  if (item.inCart > 0) {
-    item.inCart--;
+  if (item.Quantity > 0) {
+    item.Quantity--;
   }
   writeOrder();
 };
 
 const writeOrder = async () => {
   if (cart && selectedContragentData) {
-    const favsData = await $fetch("/api/writeOrder", {
+    await $fetch("/api/writeOrder", {
       method: "POST",
       body: JSON.stringify({
         unp: selectedContragentData.value?.UNP,
@@ -290,11 +290,11 @@ const submitOrder = async () => {
     cart.value.forEach((value) => {
       text += "Арт: " + value.NomCode;
       text += " Наим: " + value.NomNaim;
-      text += " Кол-во: " + value.inCart;
+      text += " Кол-во: " + value.Quantity;
       text += " Цена: " + value.Price.replace(",", ".");
       text +=
         " Сумма: " +
-        Number(value.Price.replace(",", ".")) * value.inCart +
+        Number(value.Price.replace(",", ".")) * value.Quantity +
         "\r\n";
     });
 
