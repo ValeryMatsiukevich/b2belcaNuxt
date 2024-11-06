@@ -61,7 +61,7 @@
           <v-icon size="large" icon="mdi mdi-chart-box-multiple"></v-icon>
         </v-btn>
         <v-btn
-          v-if="mng && route.path === '/service'"
+          v-if="mng && route.path === '/service' && purchasingManager"
           @click="serviceMode = 3"
           class="text-none"
           stacked
@@ -297,6 +297,7 @@ const props = defineProps({
 const auth = inject<Ref<boolean>>("auth", ref(false));
 const mng = inject<Ref<boolean>>("mng", ref(false));
 const boss = inject<Ref<boolean>>("boss", ref(false));
+const purchasingManager = inject<Ref<boolean>>("purchasingManager", ref(false));
 const favs = inject<Ref<Favs[]>>("favs", ref<Favs[]>([]));
 const balance = inject<Ref<Balance[]>>("balance");
 const osnManager = inject<Ref<Managers>>("osnManager");

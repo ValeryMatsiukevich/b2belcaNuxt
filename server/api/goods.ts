@@ -44,54 +44,44 @@ class GoodsImpl implements Goods {
 }
 export default defineEventHandler(async (event) => {
   console.log("GOODS API CALLED");
-
+  async function readFilesParallel(paths) {
+    try {
+      const data = await Promise.all(paths.map(path => fs.readFile(path, 'utf-8')));
+      return data.map(JSON.parse); // если вы уверены, что все файлы JSON
+    } catch (error) {
+      console.error('Error reading files:', error);
+      // Additional error handling can be added here
+      return ([] as any[]);
+    }
+  }
   const body = await readBody(event);
   if (!body) {
     return new Response("Missing 'body' parameter", { status: 400 });
   }
-  let prices: any[]  = [];
-  try {
-    const data1 = await fs.readFile("./public/ost_tip_cen.json", "utf-8");
-    prices = JSON.parse(data1);
-  } catch (error) {
-    console.error("Error parsing ost_tip_cen:", error);
-    // Handle the error or return a default value
-  }
-  let goods = [] as Goods[];
-  try {
-    const data = await fs.readFile("./public/nom1c8b2b.json", "utf-8");
-    goods = JSON.parse(data) as Goods[];
-  } catch (error) {
-    console.error("Error parsing ost_tip_cen:", error);
-    // Handle the error or return a default value
-  }
-  let ostatki: any[]  = [];
-  try {
-    const data2 = await fs.readFile("./public/ost8skl.json", "utf-8");
-    ostatki = JSON.parse(data2);
-  } catch (error) {
-    console.error("Error parsing ost8skl.json:", error);
-    // Handle the error or return a default value
-  }
-
+  
+  let [prices, goods, ostatki] = await readFilesParallel([
+    './public/ost_tip_cen.json',
+    './public/nom1c8b2b.json',
+    './public/ost8skl.json'
+  ]);
   //console.log(goods);
 
-  let kursyRaw: any[] | null = [];
+  let kursyRawCache = null;
+async function getKursyRaw() {
+  if (kursyRawCache) return kursyRawCache;
   try {
-    const response = await axios.get(
-      "http://base.belca.by/UT/hs/Products/Kursy/",
-      {
-        headers: {
-          Authorization: "Basic QW5kcmV5RXNvZGluOjE=",
-        },
-      }
-    );
-    kursyRaw = response.data;
-    response.data = [];
+    const response = await axios.get("http://base.belca.by/UT/hs/Products/Kursy/", {
+      headers: { Authorization: "Basic QW5kcmV5RXNvZGluOjE=" },
+    });
+    kursyRawCache = response.data;
+    return kursyRawCache;
   } catch (error) {
-    console.log(error);
-    kursyRaw = [];
+    console.log('Error fetching kursy', error);
+    return [];
   }
+}
+
+const kursyRaw = await getKursyRaw();
 
   //let kursy = JSON.parse(kursyRaw);
   const goodsMap = new WeakMap();

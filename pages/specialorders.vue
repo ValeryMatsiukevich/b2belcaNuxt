@@ -4,12 +4,29 @@
       <v-card>
         <v-data-iterator
           float
-          :items="groupedSpecialOrders"
+          :items="[
+            ...groupedSpecialOrders
+              .filter((order) => order[0].number === '')
+              .slice(),
+
+            ...groupedSpecialOrders
+              .filter((order) => order[0].number !== '')
+              .slice()
+              .sort((a, b) => {
+                const numberA = -Number(a[0].number);
+                const numberB = -Number(b[0].number);
+                return numberA - numberB;
+              }),
+          ]"
           :items-per-page="ipp ? Number(ipp) : 5"
           :return-object="false"
           :loading="loading"
           :search="search"
           :custom-filter="customSearch"
+          :sort-by="[
+            { key: 'number', order: 'desc' },
+            { key: 'date', order: 'desc' },
+          ]"
         >
           <template v-slot:default="{ items }">
             <v-container
@@ -47,7 +64,6 @@
                   <v-card
                     style="width: 100%"
                     variant="tonal"
-                    
                     class="pb-0 pt-0 mb-1"
                     rounded="0"
                   >
@@ -79,23 +95,23 @@
                           style="font-size: xx-small"
                         ></v-text-field>
                       </v-col>
-                 
-                        <v-select
-                          :items="specialOrdersSkladList"
-                          density="compact"
-                          item-title="name"
-                          item-value="id"
-                          v-model="order.raw[0].sklad"
-                          label="Склад"
-                          hide-details
-                          variant="solo"
-                          :return-object="false"
-                          v-on:update:model-value="
-                            orderChanged(order.raw[0].guid)
-                          "
-                          v-on:update:focused="updateSpecialOrder()"
-                        ></v-select>
-                      
+
+                      <v-select
+                        :items="specialOrdersSkladList as SpecialOrders[]"
+                        density="compact"
+                        item-title="name"
+                        item-value="id"
+                        v-model="order.raw[0].sklad"
+                        label="Склад"
+                        hide-details
+                        variant="solo"
+                        :return-object="false"
+                        v-on:update:model-value="
+                          orderChanged(order.raw[0].guid)
+                        "
+                        v-on:update:focused="updateSpecialOrder()"
+                      ></v-select>
+
                       <v-col cols="12" md="2">
                         <v-text-field
                           class="text-caption"
@@ -152,12 +168,10 @@
                       </v-col>
                     </v-row>
                     <div
-                     
-                      v-for="(item, ind) in order.raw"
+                      v-for="(item, ind) in order.raw as SpecialOrders"
                       :key="`${i}-${ind}`"
                     >
                       <v-card
-                      
                         variant="tonal"
                         :color="
                           changed === item.guid
@@ -602,29 +616,40 @@ onMounted(async () => {
   loading.value = false;
 });
 
+const customSort = (items, sortDesc, sortBy) => {
+  console.log("customSort");
+  // Your custom sort logic goes here
+  // For example, let's say you want to sort by the "number" property of each item
+  return items.sort((a, b) => {
+    if (sortDesc[0]) {
+      return b.raw[0].number - a.raw[0].number;
+    } else {
+      return a.raw[0].number - b.raw[0].number;
+    }
+  });
+};
 const combineOrders = () => {
   console.log("combineOrders");
   specialOrdersMng.value.forEach((mngOrder) => {
     const specialOrder = specialOrders.value?.find(
       (order) => order.guid === mngOrder.guid
     );
+    if (specialOrder) {
 
-    if (specialOrder && dayjs(mngOrder.date) > dayjs(specialOrder.date)) {
-      console.log(
-        "mngOrder.date:",
-        mngOrder.date,
-        "specialOrder.date:",
-        specialOrder.date
-      );
-      specialOrder.price = mngOrder.price;
-      specialOrder.number = mngOrder.number;
-      specialOrder.version = mngOrder.version;
-      specialOrder.term = mngOrder.term;
-      specialOrder.response = mngOrder.response;
-      specialOrder.date = mngOrder.date;
-      specialOrder.status = mngOrder.status;
-      specialOrder.supplier = mngOrder.supplier;
-      specialOrder.ordernumber = mngOrder.ordernumber;
+        specialOrder.price = mngOrder.price;
+        specialOrder.number = mngOrder.number;
+        specialOrder.version = mngOrder.version;
+        specialOrder.term = mngOrder.term;
+        specialOrder.response = mngOrder.response;
+        specialOrder.date = mngOrder.date;
+        specialOrder.supplier = mngOrder.supplier;
+        specialOrder.ordernumber = mngOrder.ordernumber;
+      
+      //console.log("mngOrder.date:", mngOrder.date, "specialOrder.date:", specialOrder.date);
+      if (specialOrder && mngOrder.status> specialOrder.status) {
+        
+        specialOrder.status = mngOrder.status;
+      }
     } else if (!specialOrder) {
       specialOrders.value.push(mngOrder);
     }
@@ -649,16 +674,11 @@ const getSpecialOrder = async () => {
     },
   });
   if (!orderData) return [];
-  const filteredOrderData = orderData; //.filter(
-  //(order: SpecialOrders) => order.status !== 8
-  //);
-  //console.log(filteredOrderData);
+  
 
-  return filteredOrderData;
-  // .sort(
-  //   (a: SpecialOrders, b: SpecialOrders) =>
-  //     dayjs(b.date).unix() - dayjs(a.date).unix()
-  // );
+  return orderData?.filter(
+    (order: SpecialOrders) => order.status !== 8
+  ) || [];
 };
 
 const getSpecialOrderMng = async () => {
@@ -675,11 +695,9 @@ const getSpecialOrderMng = async () => {
 
   //console.log(orderData);
 
-  return orderData;
-  // .sort(
-  //   (a: SpecialOrders, b: SpecialOrders) =>
-  //     dayjs(b.date).unix() - dayjs(a.date).unix()
-  // );
+  return orderData?.filter(
+    (order: SpecialOrders) => order.status !== 8
+  ) || [];
 };
 
 specialOrders.value = await getSpecialOrder();
@@ -714,11 +732,14 @@ const orderChanged = (uid: string) => {
   changed.value = uid;
 };
 const customSearch = (value: any, search: string, item: any) => {
+  //console.log(item.raw);
   const searchKeys = ["client", "good", "response"] as const; // Add the keys you want to search within
   const searchWords = search.toLowerCase().split(" "); // Разбить строку поиска на отдельные слова
 
   return searchWords.every((word) =>
-    searchKeys.some((key) => String(item.raw[key]).toLowerCase().includes(word))
+    searchKeys.some((key) =>
+      item.raw.find((i) => String(i[key]).toLowerCase().includes(word))
+    )
   );
 };
 const addSpecialOrder = async () => {
@@ -835,25 +856,7 @@ const importSpecialOrders = async () => {
   };
   input.click();
 };
-const groupedSpecialOrders = computed(() => {
-  const grouped = filteredSpecialOrders.value
-    .slice()
-    .sort((a, b) => a.version - b.version)
-    .reduce((acc, order) => {
-      const key = `${order.number}`;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(order);
-      return acc;
-    }, {});
 
-  return Object.values(grouped).sort((a, b) => {
-    const numberA = a[0].number === "" ? -Infinity : -Number(a[0].number);
-    const numberB = b[0].number === "" ? -Infinity : -Number(b[0].number);
-    return numberA - numberB;
-  });
-});
 const filteredSpecialOrders = computed(() => {
   const type =
     typeFilter.value === 0
@@ -868,23 +871,56 @@ const filteredSpecialOrders = computed(() => {
       ? specialOrders.value.map((order) => order.supplier)
       : [supplierFilter.value];
 
-  return specialOrders.value
-    .filter(
-      (order) =>
-        type.includes(order.type) &&
-        status.includes(order.status) &&
-        supplier.includes(order.supplier)
-    )
-    .sort(
-      (a: SpecialOrders, b: SpecialOrders) =>
-        dayjs(b.date).unix() - dayjs(a.date).unix()
-    );
+  return specialOrders.value.filter(
+    (order) =>
+      type.includes(order.type) &&
+      status.includes(order.status) &&
+      supplier.includes(order.supplier)
+  );
 });
 
+const groupedSpecialOrders = computed(() => {
+  const emptyNumberOrders = filteredSpecialOrders.value.filter(
+    (order) => order.number === ""
+  );
+
+  const nonEmptyNumberOrders = filteredSpecialOrders.value.filter(
+    (order) => order.number !== ""
+  );
+
+  const groupedNonEmpty = nonEmptyNumberOrders
+    .slice()
+
+    .reduce((acc, order) => {
+      const key = `${order.number}`;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(order);
+      return acc;
+    }, {});
+
+  //console.log("sortedGroupedNonEmpty:", nonEmptyNumberOrders);
+
+  const groupedEmpty = emptyNumberOrders.slice().reduce((acc, order) => {
+    const key = `${order.guid}`;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(order);
+    return acc;
+  }, {});
+
+  const allGrouped = [
+    ...Object.values(groupedEmpty),
+    ...Object.values(groupedNonEmpty),
+  ];
+  return allGrouped;
+});
 const statusBeforeUpdate = (status: number, guid: string) => {
   changed.value = guid;
   console.log("guid:", guid, "New:", status, " Old:", currstatus.value);
-  
+
   if (status >= currstatus.value) {
     currstatus.value = status;
   } else {
@@ -894,10 +930,9 @@ const statusBeforeUpdate = (status: number, guid: string) => {
       console.log("set status:", currstatus.value);
     }
   }
-    
+
   currstatus.value = status;
   updateSpecialOrder();
-  
 };
 
 const updateStatus = (status: number) => {

@@ -40,14 +40,21 @@
 const auth = ref(false);
 const mng = ref(false);
 const boss = ref(false);
+const purchasingManager = ref(false);
 const dialogVisible = shallowRef(false);
 const osnManager = ref<Managers>();
 const favsOnly = ref(false);
 const route = useRoute();
 const search = ref("");
-const loginCookie = useCookie("loginCookie");
-const passwordCookie = useCookie("passwordCookie");
-const storedSelectedContragent = useCookie("storedSelectedContragent");
+const loginCookie = useCookie("loginCookie", {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
+const passwordCookie = useCookie("passwordCookie", {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
+const storedSelectedContragent = useCookie("storedSelectedContragent", {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
 // const rememberMe = useCookie("rememberMe");
 const infotronicManager = ref(false);
 let priceType = "";
@@ -141,6 +148,12 @@ const loginProcedures = async () => {
     ) {
       infotronicManager.value = true;
       mng.value = true;
+    }
+    if (
+      UNP === '000000009' || UNP ==='000028197' || UNP === '000000029' || UNP === '000000007'|| UNP === '000000039' || UNP === '0000000055' || UNP === '000028005'
+    ) {
+      purchasingManager.value = true;
+      
     }
 
     if (
@@ -429,7 +442,7 @@ provide("password", password);
 provide("loginData", loginData);
 provide("search", search);
 provide("infotronicManager", infotronicManager);
-
+provide("purchasingManager", purchasingManager);
 onBeforeUnmount(() => {
   contragents.value = [];
   goods.value = [];

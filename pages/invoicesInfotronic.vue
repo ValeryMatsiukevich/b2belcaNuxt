@@ -149,6 +149,7 @@ const getCode = (Номенклатура_Key: string) => {
     if (good) return good.NomCode;
     else return "НЕ БЕЛКА";
   }
+  return 'НЕ БЕЛКА';
 };
 const getNaim = (Номенклатура_Key: string) => {
   if (goods) {

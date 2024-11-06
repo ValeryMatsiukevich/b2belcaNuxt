@@ -158,7 +158,9 @@
 <script lang="ts" setup>
 import { useField, useForm } from "vee-validate";
 const dialog = shallowRef(true);
-const rememberMe = useCookie("rememberMe");
+const rememberMe = useCookie("rememberMe", {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
 if (!rememberMe.value) {
   rememberMe.value = String(true);
 }
@@ -170,8 +172,12 @@ const loginData =
 const login = inject<Ref<string>>("login");
 const password = inject<Ref<string>>("password");
 const infotronicManager = inject<Ref<boolean>>("infotronicManager");
-const loginCookie = useCookie("loginCookie");
-const passwordCookie = useCookie("passwordCookie");
+const loginCookie = useCookie("loginCookie", {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
+const passwordCookie = useCookie("passwordCookie", {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
 const message = shallowRef(false);
 const { handleSubmit, handleReset } = useForm({
   validationSchema: {
@@ -239,10 +245,7 @@ const checkLogin = async () => {
     }
     if(loginData.value.Ответ === "Successful !" && loginData.value.Kontragent.length === 0) {
       alert("Логин и пароль верны, но карточка клиента в 1С не правильно заполнена. Обратитесь к вашему менеджеру.");
-      login.value = '';
-      password.value = '';
-      loginCookie.value = '';
-      passwordCookie.value = '';
+      
       return;
     }
     if (
