@@ -37,6 +37,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useLocale } from 'vuetify'
 const auth = ref(false);
 const mng = ref(false);
 const boss = ref(false);
@@ -77,6 +78,8 @@ const invoices = ref<Invoices[]>([]);
 const contragents = ref<Contragents[]>([]);
 const loginDataraw = ref<LoginResponse>();
 let goodsLength = computed(() => (goods.value ? goods.value.length : 0));
+const { current } = useLocale();
+current.value = "ru";
 const loginProcedures = async () => {
   //if ((loginCookie.value!=='' || login) && (passwordCookie.value!=='' || password)) {
   let loginD = "";

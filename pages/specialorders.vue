@@ -892,7 +892,7 @@ const groupedSpecialOrders = computed(() => {
     .slice()
 
     .reduce((acc, order) => {
-      const key = `${order.number}`;
+      const key = `${order.UNP}-${order.type}-${order.number}`;
       if (!acc[key]) {
         acc[key] = [];
       }

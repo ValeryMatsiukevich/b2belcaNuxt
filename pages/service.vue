@@ -36,7 +36,41 @@
     </v-card-actions>
   </v-card>
   <div v-if="serviceMode === 3">
+    
     <v-card>
+      <v-dialog
+      v-model="dialogStartDate"
+      width="auto"
+    >
+      <v-card
+        max-width="600"
+      
+      >
+      <v-row>
+        <v-col cols="6">
+          <v-date-picker
+          title="Выберите дату"
+          v-model="startDate"
+          hide-header
+          ></v-date-picker>
+        </v-col>
+        <v-col cols="6">
+          <v-date-picker
+          hide-header
+          v-model="endDate"
+          title="Выберите дату"
+          ></v-date-picker>
+        </v-col>
+      </v-row>
+        <template v-slot:actions>
+          <v-btn
+            class="ms-auto"
+            text="Ok"
+            @click="dialogStartDate = false"
+          ></v-btn>
+        </template>
+      </v-card>
+    </v-dialog> 
       <v-data-iterator
         float
         :items="[
@@ -96,9 +130,10 @@
                       ></v-text-field>
                     </v-col>
 
-                    <v-col cols="12" md="2">
+                    <v-col cols="12" md="1">
                       <v-text-field
                         variant="solo"
+                        class="xsmalltext"
                         hide-details
                         v-model="order.raw[0].date"
                         :value="
@@ -106,7 +141,6 @@
                         "
                         label="Дата и время"
                         density="compact"
-                        style="font-size: xx-small"
                         readonly
                       ></v-text-field>
                     </v-col>
@@ -126,7 +160,7 @@
                       v-on:update:focused="updateSpecialOrder(order.raw[0].UNP)"
                     ></v-select>
 
-                    <v-col cols="12" md="2">
+                    <v-col cols="12" md="1">
                       <v-text-field
                         class="text-caption"
                         variant="solo"
@@ -137,7 +171,7 @@
                         readonly
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="12" md="1">
+                    <v-col cols="12" md="2">
                       <v-text-field
                         variant="solo"
                         density="compact"
@@ -312,19 +346,10 @@
                             variant="tonal"
                             size="x-small"
                             hide-details
-                            icon="mdi-check-bold"
+                            @click="addSpecialOrder(item)"
+                            icon="mdi-plus"
                             :color="changed === item.guid ? 'red' : 'blue'"
                           ></v-btn>
-
-                          <v-chip
-                            v-if="item.status !== 7"
-                            variant="tonal"
-                            size="x-small"
-                            color="green"
-                            @click="addSpecialOrder(item)"
-                          >
-                            <v-icon icon="mdi-plus"></v-icon>
-                          </v-chip>
 
                           <v-text-field
                             v-if="item.status === 7"
@@ -344,7 +369,9 @@
             </v-row>
           </v-container>
         </template>
-        <template v-slot:header="{ page, pageCount, prevPage, nextPage }">
+        <template
+          v-slot:header="{ page, pageCount, prevPage, nextPage, items }"
+        >
           <v-toolbar class="px-2 position-fixed" style="z-index: 1000">
             <v-text-field
               v-model="search"
@@ -421,7 +448,7 @@
                 variant="tonal"
                 rounded
                 v-tooltip="'Сохранить в файл Excel'"
-                @click="exportSpecialOrders()"
+                @click="exportSpecialOrders(items)"
               ></v-btn>
             </div>
 
@@ -451,7 +478,14 @@
                 @click="nextPage"
               ></v-btn>
             </div>
-
+            
+               <v-chip  @click="dialogStartDate = true">
+                {{ dayjs(startDate).format('DD.MM.YYYY') }}
+               </v-chip>
+               <v-chip  @click="dialogEndDate = true">
+                {{ dayjs(endDate).format('DD.MM.YYYY') }}
+               </v-chip>
+             
             <span class="subheading mx-2 text-caption hidden-md-and-down"
               >Заказов на странице:</span
             >
@@ -546,6 +580,11 @@ watchEffect(async () => {
 dayjs.locale("ru");
 const loginData = inject<Ref<LoginResponse>>("loginData");
 const specialOrders = ref<SpecialOrders[]>([]);
+const dialogStartDate = ref(false)
+const dialogEndDate = ref(false)
+const startDate = ref(new Date(dayjs().subtract(7, 'day').valueOf()));
+
+const endDate = ref(new Date());
 
 const loading = ref(false);
 const ipp = ref(5);
@@ -722,9 +761,9 @@ const customSearch = (value: any, search: string, item: any) => {
     )
   );
 };
-const exportSpecialOrders = async () => {
-  // ...
-  const specialOrdersData = specialOrders.value;
+const exportSpecialOrders = async (items: SpecialOrders[]) => {
+  const specialOrdersData = Array.from(items).flatMap((item) => item.raw);
+  console.log(specialOrdersData);
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Special Orders");
   worksheet.columns = [
@@ -778,14 +817,14 @@ const filteredSpecialOrders = computed(() => {
       ? specialOrders.value.map((order) => order.supplier)
       : [supplierFilter.value];
 
-  return specialOrders.value
-    .filter(
-      (order) =>
-        type.includes(order.type) &&
-        status.includes(order.status) &&
-        supplier.includes(order.supplier)
-    )
-    
+  return specialOrders.value.filter(
+    (order) =>
+      type.includes(order.type) &&
+      status.includes(order.status) &&
+      supplier.includes(order.supplier) &&
+      new Date(order.date) >= startDate.value && new Date(order.date) <= endDate.value 
+      
+  );
 });
 const groupedSpecialOrders = computed(() => {
   // const emptyNumberOrders = filteredSpecialOrders.value.filter(
@@ -800,7 +839,7 @@ const groupedSpecialOrders = computed(() => {
     .slice()
 
     .reduce((acc, order) => {
-      const key = `${order.number}-${order.manager}`;
+      const key = `${order.UNP}-${order.type}-${order.number}`;
       if (!acc[key]) {
         acc[key] = [];
       }
@@ -885,16 +924,23 @@ const addSpecialOrder = async (order: SpecialOrders) => {
   font-size: smaller !important;
   margin-top: 4px !important;
 }
-:deep(.v-select .v-select__selection-text) {
-  font-size: x-small !important;
-}
-:deep(.v-autocomplete .v-field) {
-  font-size: x-small !important;
-}
-:deep(.v-list-item-title) {
-  font-size: x-small !important;
-}
 :deep(.xsmalltext) {
+  font-size: x-small !important;
+}
+ :deep(.v-autocomplete input::placeholder) {
+  font-size: smaller !important;
+} 
+:deep(.v-input--density-compact .v-field__input) {
+  font-size: smaller !important;
+} 
+
+:deep( .v-select .v-select__selection-text)  {
+  font-size: x-small !important;
+} 
+:deep(.v-list-item-title) {
+  font-size: smaller !important;
+}
+:deep(.xxsmalltext) {
   font-size: xx-small !important;
 }
 </style>

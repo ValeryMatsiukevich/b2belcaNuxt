@@ -67,9 +67,15 @@ export default defineNuxtConfig({
     // 'vue-yandex-maps/nuxt',
     '@nuxt/scripts',
     'nuxt-scheduler',
-    'dayjs-nuxt'
+    'dayjs-nuxt',
+    '@nuxtjs/i18n'
     
   ],
+  i18n: {
+    locales: ['en', 'ru'],
+    defaultLocale: 'ru',
+    
+  },
   //  yandexMaps: {
   //    apikey: 'e724701e-8b3c-4092-be9d-daabb8272ee6',
   //    initializeOn:"onPluginInit",
