@@ -27,6 +27,6 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  return allOrders.flat();
+  return allOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 });
 

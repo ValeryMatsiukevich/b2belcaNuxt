@@ -291,10 +291,10 @@ const submitOrder = async () => {
       text += "Арт: " + value.NomCode;
       text += " Наим: " + value.NomNaim;
       text += " Кол-во: " + value.Quantity;
-      text += " Цена: " + value.Price.replace(",", ".");
+      text += " Цена: " + String(value.Price).replace(",", ".");
       text +=
         " Сумма: " +
-        Number(value.Price.replace(",", ".")) * value.Quantity +
+        Number(String(value.Price).replace(",", ".")) * value.Quantity +
         "\r\n";
     });
 

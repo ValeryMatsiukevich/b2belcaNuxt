@@ -97,7 +97,7 @@
                       </v-col>
 
                       <v-select
-                        :items="specialOrdersSkladList as SpecialOrders[]"
+                        :items="specialOrdersSkladList"
                         density="compact"
                         item-title="name"
                         item-value="id"
@@ -324,6 +324,7 @@
           <template v-slot:header="{ page, pageCount, prevPage, nextPage }">
             <v-toolbar class="px-2 position-fixed" style="z-index: 1000">
               <v-text-field
+                class="mr-1"
                 v-model="search"
                 density="compact"
                 placeholder="Поиск"
@@ -335,6 +336,7 @@
               ></v-text-field>
               <div>
                 <v-select
+                  class="mr-1"
                   :items="ordertype"
                   density="compact"
                   item-title="name"
@@ -350,6 +352,7 @@
               </div>
               <div>
                 <v-autocomplete
+                  class="mr-1"
                   width="150"
                   clearable
                   :items="suppliers"
@@ -417,6 +420,15 @@
                   rounded
                   v-tooltip="'Загрузить из файла Excel'"
                   @click="importSpecialOrders()"
+                ></v-btn>
+                <v-btn
+                  class="mx-2"
+                  density="comfortable"
+                  icon="mdi-feature-search-outline"
+                  variant="tonal"
+                  rounded
+                  v-tooltip="'Поиск по заказам всех менеджеров'"
+                  @click="dialogVisible = true"
                 ></v-btn>
               </div>
 
@@ -500,6 +512,9 @@
           </template>
         </v-snackbar>
       </div>
+      <v-dialog two v-model="dialogVisible">
+      <SearchAllSpecialOrders />
+      </v-dialog>
     </ClientOnly>
   </div>
 </template>
@@ -512,7 +527,7 @@ dayjs.locale("ru");
 const loginData = inject<Ref<LoginResponse>>("loginData");
 const specialOrders = ref<SpecialOrders[]>([]);
 const specialOrdersMng = ref<SpecialOrders[]>([]);
-
+const dialogVisible = ref(false);
 const loading = ref(false);
 const ipp = ref(5);
 const typeFilter = ref(0);
@@ -635,19 +650,17 @@ const combineOrders = () => {
       (order) => order.guid === mngOrder.guid
     );
     if (specialOrder) {
+      specialOrder.price = mngOrder.price;
+      specialOrder.number = mngOrder.number;
+      specialOrder.version = mngOrder.version;
+      specialOrder.term = mngOrder.term;
+      specialOrder.response = mngOrder.response;
+      specialOrder.date = mngOrder.date;
+      specialOrder.supplier = mngOrder.supplier;
+      specialOrder.ordernumber = mngOrder.ordernumber;
 
-        specialOrder.price = mngOrder.price;
-        specialOrder.number = mngOrder.number;
-        specialOrder.version = mngOrder.version;
-        specialOrder.term = mngOrder.term;
-        specialOrder.response = mngOrder.response;
-        specialOrder.date = mngOrder.date;
-        specialOrder.supplier = mngOrder.supplier;
-        specialOrder.ordernumber = mngOrder.ordernumber;
-      
       //console.log("mngOrder.date:", mngOrder.date, "specialOrder.date:", specialOrder.date);
-      if (specialOrder && mngOrder.status> specialOrder.status) {
-        
+      if (specialOrder && mngOrder.status > specialOrder.status) {
         specialOrder.status = mngOrder.status;
       }
     } else if (!specialOrder) {
@@ -674,11 +687,8 @@ const getSpecialOrder = async () => {
     },
   });
   if (!orderData) return [];
-  
 
-  return orderData?.filter(
-    (order: SpecialOrders) => order.status !== 8
-  ) || [];
+  return orderData?.filter((order: SpecialOrders) => order.status !== 8) || [];
 };
 
 const getSpecialOrderMng = async () => {
@@ -695,9 +705,7 @@ const getSpecialOrderMng = async () => {
 
   //console.log(orderData);
 
-  return orderData?.filter(
-    (order: SpecialOrders) => order.status !== 8
-  ) || [];
+  return orderData?.filter((order: SpecialOrders) => order.status !== 8) || [];
 };
 
 specialOrders.value = await getSpecialOrder();
@@ -954,13 +962,13 @@ const updateStatus = (status: number) => {
   margin-top: 4px !important;
 }
 :deep(.v-select .v-select__selection-text) {
-  font-size: x-small !important;
+  font-size: smaller !important;
 }
 :deep(.v-autocomplete .v-field) {
-  font-size: x-small !important;
+  font-size: smaller !important;
 }
 :deep(.v-list-item-title) {
-  font-size: x-small !important;
+  font-size: smaller !important;
 }
 :deep(.xsmalltext) {
   font-size: xx-small !important;
