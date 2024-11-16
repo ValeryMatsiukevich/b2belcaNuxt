@@ -1,0 +1,22 @@
+CREATE TABLE `users` (
+	`id` integer PRIMARY KEY NOT NULL,
+	`ClientUNP` text,
+	`UNP` text,
+	`client` text,
+	`date` text,
+	`good` text,
+	`guid` text,
+	`manager` text,
+	`number` integer,
+	`ordernumber` text,
+	`price` text,
+	`quantity` integer,
+	`sklad` integer,
+	`response` text,
+	`status` integer,
+	`supplier` integer,
+	`term` text,
+	`type` integer,
+	`version` integer,
+	`created_at` text DEFAULT CURRENT_TIMESTAMP
+);

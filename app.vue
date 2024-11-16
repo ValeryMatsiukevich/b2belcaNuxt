@@ -79,7 +79,7 @@ const contragents = ref<Contragents[]>([]);
 const loginDataraw = ref<LoginResponse>();
 let goodsLength = computed(() => (goods.value ? goods.value.length : 0));
 const { current } = useLocale();
-current.value = "ru";
+//current.value = "ru";
 const loginProcedures = async () => {
   //if ((loginCookie.value!=='' || login) && (passwordCookie.value!=='' || password)) {
   let loginD = "";
@@ -153,7 +153,8 @@ const loginProcedures = async () => {
       mng.value = true;
     }
     if (
-      UNP === '000000009' || UNP ==='000028197' || UNP === '000000029' || UNP === '000000007'|| UNP === '000000039' || UNP === '0000000055' || UNP === '000028005'
+     // UNP === '000000009' || UNP ==='000028197' || UNP === '000000029' || UNP === '000000007'|| UNP === '000000039' || UNP === '0000000055' || UNP === '000028005'
+      UNP === '0000000055'
     ) {
       purchasingManager.value = true;
       

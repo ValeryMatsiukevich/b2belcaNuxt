@@ -143,7 +143,7 @@
         </v-btn>
       </NuxtLink>
       <NuxtLink
-        v-if="mng && route.path !== '/service'"
+        v-if="boss && route.path !== '/service'"
         to="/specialorders"
         class="ml-3 hidden-sm-and-down"
       >

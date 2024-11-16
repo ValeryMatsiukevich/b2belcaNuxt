@@ -3,6 +3,7 @@
     <ClientOnly>
       <v-card>
         <v-data-iterator
+          v-if="!loading"
           float
           :items="[
             ...groupedSpecialOrders
@@ -659,8 +660,8 @@ const combineOrders = () => {
       specialOrder.supplier = mngOrder.supplier;
       specialOrder.ordernumber = mngOrder.ordernumber;
 
-      //console.log("mngOrder.date:", mngOrder.date, "specialOrder.date:", specialOrder.date);
-      if (specialOrder && mngOrder.status > specialOrder.status) {
+      
+      if (specialOrder && mngOrder.status > specialOrder.status && specialOrder.status !== 8) {
         specialOrder.status = mngOrder.status;
       }
     } else if (!specialOrder) {
@@ -751,6 +752,7 @@ const customSearch = (value: any, search: string, item: any) => {
   );
 };
 const addSpecialOrder = async () => {
+  
   specialOrders.value?.push({
     ClientUNP: "",
     UNP: loginData?.value?.Kontragent[0]?.UNP,
@@ -945,6 +947,7 @@ const statusBeforeUpdate = (status: number, guid: string) => {
 
 const updateStatus = (status: number) => {
   console.log("New:", status, " Old:", currstatus.value);
+  updateSpecialOrder();
   // currstatus.value = status;
 };
 </script>
